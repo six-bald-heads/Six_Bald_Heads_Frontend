@@ -5,7 +5,7 @@ const FileDirectory: React.FC = () => {
     return (
         <DirectoryContainer>
             파일관리 컴포넌트
-            {/* 구현 내용 */}
+            console.log("지히님 최고")
         </DirectoryContainer>
     );
 }
