@@ -1,11 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Tree } from 'antd';
+import 'antd/dist/antd.css';
 
 const FileDirectory: React.FC = () => {
     return (
         <DirectoryContainer>
             파일관리 컴포넌트
-            console.log("지히님 최고")
+            {/* console.log("지히님 최고") */}
         </DirectoryContainer>
     );
 }
