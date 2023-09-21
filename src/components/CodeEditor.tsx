@@ -1,11 +1,24 @@
 import React from 'react';
 import styled from 'styled-components';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
 
 const CodeEditor: React.FC = () => {
+    const [value, setValue] = React.useState("console.log('hello world!');");
+
+    const onChange = (val: string) => {
+        setValue(val);
+    };
+
     return (
         <EditorContainer>
-            코드에디터 컴포넌트
-            {/* 구현 내용 */}
+            <CodeMirror
+                value={value}
+                height="100%"
+                width="100%"
+                extensions={[javascript({ jsx: true })]}
+                onChange={onChange}
+            />
         </EditorContainer>
     );
 }
