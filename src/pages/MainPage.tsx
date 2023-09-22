@@ -49,8 +49,9 @@ const MainContainer = styled.div`
 `;
 
 const MainContent = styled.div`
+  height: calc(100% - 40px);
   width: 100%;
-  padding: 2%;
+  padding: 20px;
   display: flex;
 `;
 
