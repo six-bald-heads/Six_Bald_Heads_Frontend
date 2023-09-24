@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, {EditorView, keymap} from '@uiw/react-codemirror';
+import {indentWithTab} from "@codemirror/commands"
 import {javascript} from '@codemirror/lang-javascript';
 
 const CodeEditor: React.FC = () => {
     const [value, setValue] = useState("console.log('hello world!');");
-    const [fontSize, setFontSize] = useState(14);  // 초기 글자 크기 설정
+    const [fontSize, setFontSize] = useState(14);
 
     const onChange = (val: string) => {
         setValue(val);
@@ -14,6 +15,7 @@ const CodeEditor: React.FC = () => {
     const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setFontSize(Number(event.target.value));
     };
+
 
     return (
         <EditorContainer>
@@ -28,11 +30,14 @@ const CodeEditor: React.FC = () => {
             </TopBar>
             <EditorWrapper fontSize={fontSize}>
                 <CodeMirror
-                    className="cm-outer-container"
                     value={value}
                     height="100%"
                     width="100%"
-                    extensions={[javascript({jsx: true})]}
+                    extensions={[
+                        javascript({jsx: true}),
+                        EditorView.lineWrapping,
+                        keymap.of([indentWithTab]),
+                    ]}
                     theme={'dark'}
                     onChange={onChange}
                 />
