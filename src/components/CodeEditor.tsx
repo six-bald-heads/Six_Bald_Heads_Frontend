@@ -1,26 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import CodeMirror from '@uiw/react-codemirror';
-import { EditorView } from '@codemirror/view';
 import {javascript} from '@codemirror/lang-javascript';
 
-
 const CodeEditor: React.FC = () => {
-    const [value, setValue] = React.useState("console.log('hello world!');");
+    const [value, setValue] = useState("console.log('hello world!');");
+    const [fontSize, setFontSize] = useState(14);  // 초기 글자 크기 설정
 
     const onChange = (val: string) => {
         setValue(val);
     };
 
+    const handleFontSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setFontSize(Number(event.target.value));
+    };
+
     return (
         <EditorContainer>
-            <EditorWrapper>
+            <TopBar>
+                <FontSizeSelector onChange={handleFontSizeChange}>
+                    <option value="12">12px</option>
+                    <option value="14">14px</option>
+                    <option value="16">16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                </FontSizeSelector>
+            </TopBar>
+            <EditorWrapper fontSize={fontSize}>
                 <CodeMirror
                     className="cm-outer-container"
                     value={value}
                     height="100%"
                     width="100%"
-                    extensions={[javascript({jsx: true}), EditorView.lineWrapping]}
+                    extensions={[javascript({jsx: true})]}
                     theme={'dark'}
                     onChange={onChange}
                 />
@@ -39,12 +51,23 @@ const EditorContainer = styled.div`
   color: #CED0D9;
 `;
 
-const EditorWrapper = styled.div`
-  height: 100%;
+const TopBar = styled.div`
+  margin-bottom: 20px;
+`;
+
+const FontSizeSelector = styled.select`
+    padding: 5px;
+`;
+
+const EditorWrapper = styled.div<{ fontSize: number }>`
+  height: calc(100% - 50px);
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: scroll;
   
+  .cm-outer-container {
+    font-size: ${props => props.fontSize}px;
+  }
 `;
 
 export default CodeEditor;
