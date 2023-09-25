@@ -7,7 +7,7 @@ type TreeNode = {
 export const treeData: TreeNode[] = [
   {
     key: "0",
-    title: "folder",
+    title: "src",
     children: [
       { key: "0-0", title: "file.tsx" },
       { key: "0-1", title: "file.js" },

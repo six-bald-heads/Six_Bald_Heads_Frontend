@@ -26,4 +26,26 @@ export const handleRightClick = (eventInfo) => {
   const menuItems = isFolder
     ? ["파일 추가", "이름 수정", "삭제", "X"]
     : ["이름 수정", "삭제", "X"];
+
+  return menuItems;
+};
+
+export const handleItemClick = (
+  option: string,
+  treeData: any[],
+  setTreeData: React.Dispatch<React.SetStateAction<any[]>>
+) => {
+  switch (option) {
+    case "새 파일 생성하기": {
+      // 새 파일을 생성하는 로직
+      const newFile = {
+        key: `${treeData.length}`,
+        title: "새 파일",
+      };
+      const newTreeData = [...treeData, newFile];
+      setTreeData(newTreeData);
+      break;
+    }
+    // ... 나머지 경우들
+  }
 };
