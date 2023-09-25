@@ -18,13 +18,13 @@ const CodeEditor: React.FC = () => {
 
     const handleSave = async () => {
         const requestData = {
-            path: "your-path-here",
-            fileName: "your-file-name-here",
+            path: "/src/bald",
+            fileName: "bald.js",
             content: value
         };
 
         try {
-            const response = await fetch('/api/v1/editor', {
+            const response = await fetch('http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/editor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const CodeEditor: React.FC = () => {
                     <option value="18">18px</option>
                     <option value="20">20px</option>
                 </FontSizeSelector>
-                <SaveButton onClick={handleSave}>Save</SaveButton>
+                <SaveButton onClick={handleSave}>저장</SaveButton>
             </TopBar>
             <EditorWrapper fontSize={fontSize}>
                 <CodeMirror
