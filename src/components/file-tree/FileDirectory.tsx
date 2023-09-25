@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Tree from "rc-tree";
 import { treeData as initialTreeData } from "./TreeData";
-import { addFile, addFolder } from "./TreeFunction";
+import { addFile, addFolder, handleRightClick } from "./TreeFunction";
 
 const FileDirectory: React.FC = () => {
   const [treeData, setTreeData] = useState(initialTreeData);
@@ -17,10 +17,14 @@ const FileDirectory: React.FC = () => {
         defaultExpandAll={false}
         style={{ border: "1px solid #000" }}
         treeData={treeData}
+        onRightClick={(eventInfo) => handleRightClick}
       />
     </DirectoryContainer>
   );
 };
+
+//eventInfo 설정하기
+// 컨텍스트 메뉴 handleRightClick함수 아래에 띄우기
 
 const DirectoryContainer = styled.div`
   height: 100%;
