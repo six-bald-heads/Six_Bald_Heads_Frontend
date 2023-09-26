@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
 import styled from 'styled-components';
 import axios, {AxiosError} from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
 
     interface ErrorResponse {
         message: string;
@@ -22,6 +24,7 @@ const LoginPage: React.FC = () => {
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
                 console.log(response);
+                navigate('/main');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -42,8 +45,7 @@ const LoginPage: React.FC = () => {
 
 
     const handleSignup = () => {
-        // 회원가입 페이지로 이동 또는 회원가입 로직
-        console.log('Navigating to signup page');
+        navigate('/signup');
     };
 
     return (
