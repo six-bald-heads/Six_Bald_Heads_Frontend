@@ -6,6 +6,10 @@ const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    interface ErrorResponse {
+        message: string;
+    }
+
     const handleLogin = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/login';
         const data = {
@@ -18,20 +22,24 @@ const LoginPage: React.FC = () => {
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
                 console.log(response);
-            } else if (response.status === 400) {
-                console.error('이메일이나 비밀번호가 올바르지 않습니다. : ', response.data.message);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response ? axiosError.response.data : axiosError.message);
+                if (axiosError.response && axiosError.response.status === 400) {
+                    const errorResponse = axiosError.response.data as ErrorResponse;
+                    console.error('이메일이나 비밀번호가 올바르지 않습니다. : ', errorResponse.message);
+                } else {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response ? axiosError.response.data : axiosError.message);
+                }
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', error);
             }
         }
     };
+
 
     const handleSignup = () => {
         // 회원가입 페이지로 이동 또는 회원가입 로직
