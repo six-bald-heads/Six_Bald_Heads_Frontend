@@ -7,7 +7,7 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
 
     const handleLogin = async () => {
-        const url = '/api/v1/auth/login';
+        const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/login';
         const data = {
             email,
             password
@@ -15,13 +15,20 @@ const LoginPage: React.FC = () => {
 
         try {
             const response = await axios.post(url, data);
-            console.log('Login successful:', response.data);
+            if (response.status === 200) {
+                console.log('로그인 성공! : ', response.data);
+                console.log(response);
+            } else if (response.status === 400) {
+                console.error('이메일이나 비밀번호가 올바르지 않습니다. : ', response.data.message);
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
+            }
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                console.error('Login failed:', axiosError.response ? axiosError.response.data : axiosError.message);
+                console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response ? axiosError.response.data : axiosError.message);
             } else {
-                console.error('An unknown error occurred:', error);
+                console.error('예상치 못한 문제가 발생했어요! : ', error);
             }
         }
     };
@@ -53,7 +60,6 @@ const LoginPage: React.FC = () => {
         </LoginContainer>
     );
 };
-
 
 const LoginContainer = styled.div`
   width: 100vw;
@@ -180,11 +186,11 @@ const Button = styled.button`
   }
 
   @media (max-width: 1080px) {
-    width: 30%;
+    width: 20%;
   }
 
   @media (max-width: 670px) {
-    width: 50%;
+    width: 25%;
   }
 `;
 
