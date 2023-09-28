@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import styled from 'styled-components';
 import {useNavigate} from 'react-router-dom';
 import axios, {AxiosError} from 'axios';
@@ -11,6 +11,16 @@ const SignupPage: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [countdown, setCountdown] = useState<number | null>(null);
     const timerIdRef = useRef<number | null>(null);
+    const [emailError, setEmailError] = useState<string | null>(null);
+    const [nicknameError, setNicknameError] = useState<string | null>(null);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const emailRegex = new RegExp(
+        '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
+    );
+    const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
+    const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
+    const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+
     const navigate = useNavigate();
 
     const handleSendVerificationCode = async () => {
@@ -120,6 +130,54 @@ const SignupPage: React.FC = () => {
         }
     };
 
+    const validateEmail = (email: string) => {
+        if (email === '') {
+            setEmailError(null);
+        } else if (!emailRegex.test(email)) {
+            setEmailError('유효하지 않은 이메일 주소입니다.');
+        } else {
+            setEmailError(null);
+        }
+    };
+
+    const validateNickname = (nickname: string) => {
+        if (nickname === '') {
+            setNicknameError(null);
+        } else if (!nicknameRegex.test(nickname)) {
+            setNicknameError('닉네임은 4~10자의 영문자, 숫자, 한글로 구성되어야 합니다.');
+        } else {
+            setNicknameError(null);
+        }
+    };
+
+    const validatePassword = (password: string) => {
+        if (password === '') {
+            setPasswordError(null);
+        } else if (!passwordRegex.test(password)) {
+            setPasswordError('비밀번호는 8~12자의 영문 소문자와 숫자로 구성되어야 합니다.');
+        } else {
+            setPasswordError(null);
+        }
+    };
+
+    const validateConfirmPassword = (confirmPassword: string) => {
+        if (confirmPassword === '') {
+            setConfirmPasswordError(null);
+        } else if (confirmPassword !== password) {
+            setConfirmPasswordError('비밀번호가 일치하지 않습니다.');
+        } else {
+            setConfirmPasswordError(null);
+        }
+    };
+
+
+    useEffect(() => {
+        validateEmail(email);
+        validateNickname(nickname);
+        validatePassword(password);
+        validateConfirmPassword(confirmPassword);
+    }, [email, nickname, password, confirmPassword]);
+
 
     const handleSignupSumit = () => {
         navigate('/login');
@@ -129,48 +187,54 @@ const SignupPage: React.FC = () => {
         <SignupContainer>
             <SignupWrapper>
                 <Title>회원가입</Title>
-                <EmailSection>
-                    <Input
-                        type="email"
-                        placeholder="이메일"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <SendCodeButton onClick={handleSendVerificationCode}>인증번호 전송</SendCodeButton>
-                </EmailSection>
-                <VerificationSection>
-                    <InputContainer>
+                <InputContainerWrapper>
+                    <EmailSection>
+                        <Input
+                            type="email"
+                            placeholder="이메일"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <SendCodeButton onClick={handleSendVerificationCode}>인증번호 전송</SendCodeButton>
+                        {emailError && <ErrorText>{emailError}</ErrorText>}
+                    </EmailSection>
+                    <VerificationSection>
+                        <InputContainer>
+                            <Input
+                                type="text"
+                                placeholder="이메일 인증코드"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
+                            />
+                            {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
+                        </InputContainer>
+                        <VerifyCodeButton onClick={handleVerifyCode}>인증 확인</VerifyCodeButton>
+                    </VerificationSection>
+                    <NicknameSection>
                         <Input
                             type="text"
-                            placeholder="이메일 인증코드"
-                            value={verificationCode}
-                            onChange={(e) => setVerificationCode(e.target.value)}
+                            placeholder="닉네임"
+                            value={nickname}
+                            onChange={(e) => setNickname(e.target.value)}
                         />
-                        {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
-                    </InputContainer>
-                    <VerifyCodeButton onClick={handleVerifyCode}>인증 확인</VerifyCodeButton>
-                </VerificationSection>
-                <NicknameSection>
+                        <CheckNicknameButton onClick={handleCheckNickname}>중복 확인</CheckNicknameButton>
+                        {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
+                    </NicknameSection>
                     <Input
-                        type="text"
-                        placeholder="닉네임"
-                        value={nickname}
-                        onChange={(e) => setNickname(e.target.value)}
+                        type="password"
+                        placeholder="비밀번호"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
-                    <CheckNicknameButton onClick={handleCheckNickname}>중복 확인</CheckNicknameButton>
-                </NicknameSection>
-                <Input
-                    type="password"
-                    placeholder="비밀번호"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <Input
-                    type="password"
-                    placeholder="비밀번호 확인"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+                    {passwordError && <ErrorText>{passwordError}</ErrorText>}
+                    <Input
+                        type="password"
+                        placeholder="비밀번호 확인"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    {confirmPasswordError && <ErrorText>{confirmPasswordError}</ErrorText>}
+                </InputContainerWrapper>
                 <Button onClick={handleSignupSumit}>가입하기</Button>
             </SignupWrapper>
         </SignupContainer>
@@ -195,6 +259,35 @@ const SignupWrapper = styled.div`
   justify-content: center;
   background-color: #141617;
   gap: 20px;
+
+  @media (max-width: 2000px) {
+    width: 55%;
+  }
+
+  @media (max-width: 1700px) {
+    width: 60%;
+  }
+
+  @media (max-width: 1400px) {
+    width: 65%;
+  }
+
+  @media (max-width: 1080px) {
+    width: 70%;
+  }
+
+  @media (max-width: 670px) {
+    width: 80%;
+  }
+`;
+
+const InputContainerWrapper = styled.div`
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
 `;
 
 const Title = styled.h1`
@@ -242,8 +335,8 @@ const SendCodeButton = styled.button`
 `;
 
 const VerificationSection = styled.div`
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 `;
 
 const InputContainer = styled.div`
@@ -259,40 +352,36 @@ const CountdownSpan = styled.span`
 `;
 
 const VerifyCodeButton = styled.button`
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007BFF;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
 
-    &:hover {
-        background-color: #0056b3;
-    }
-`;
-
-const Countdown = styled.span`
-    color: #6D9AE3;
+  &:hover {
+    background-color: #0056b3;
+  }
 `;
 
 const NicknameSection = styled.div`
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 `;
 
 const CheckNicknameButton = styled.button`
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007BFF;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
 
-    &:hover {
-        background-color: #0056b3;
-    }
+  &:hover {
+    background-color: #0056b3;
+  }
 `;
 
 const Input = styled.input`
@@ -326,6 +415,12 @@ const Button = styled.button`
   @media (max-width: 670px) {
     width: 25%;
   }
+`;
+
+const ErrorText = styled.span`
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
 `;
 
 export default SignupPage;
