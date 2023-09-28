@@ -179,9 +179,38 @@ const SignupPage: React.FC = () => {
     }, [email, nickname, password, confirmPassword]);
 
 
-    const handleSignupSumit = () => {
-        navigate('/login');
+    const handleSignupSubmit = async () => {
+        const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/signup';
+        const data = {
+            email,
+            password,
+            nickname,
+            emailValid: emailError === null && email !== '',  // 이메일 유효성 검사가 통과되었는지 확인
+            nicknameValid: nicknameError === null && nickname !== ''  // 닉네임 유효성 검사가 통과되었는지 확인
+        };
+
+        try {
+            const response = await axios.post(url, data);
+            if (response.status === 200) {
+                console.log('회원가입 성공! : ', response.data);
+                navigate('/login');  // 회원가입 성공 시 로그인 페이지로 이동
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                } else {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
+                }
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', error);
+            }
+        }
     };
+
 
     return (
         <SignupContainer>
@@ -235,7 +264,7 @@ const SignupPage: React.FC = () => {
                     />
                     {confirmPasswordError && <ErrorText>{confirmPasswordError}</ErrorText>}
                 </InputContainerWrapper>
-                <Button onClick={handleSignupSumit}>가입하기</Button>
+                <SignupButton onClick={handleSignupSubmit}>가입하기</SignupButton>
             </SignupWrapper>
         </SignupContainer>
     );
@@ -324,7 +353,7 @@ const SendCodeButton = styled.button`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #007BFF;
+  background-color: #6D9AE3;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -355,7 +384,7 @@ const VerifyCodeButton = styled.button`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #007BFF;
+  background-color: #6D9AE3;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -374,7 +403,7 @@ const CheckNicknameButton = styled.button`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #007BFF;
+  background-color: #6D9AE3;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -391,7 +420,7 @@ const Input = styled.input`
   font-size: 16px;
 `;
 
-const Button = styled.button`
+const SignupButton = styled.button`
   width: 15%;
   padding: 10px;
   border: none;
