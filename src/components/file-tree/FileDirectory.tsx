@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Tree from "rc-tree";
-import { treeData as initialTreeData } from "./TreeData";
+import { treeData as initialTreeData } from "./treeData";
 import {
   addFile,
   addFolder,
@@ -16,16 +16,34 @@ const MENU_ID = "context-menu";
 const FileDirectory: React.FC = () => {
   const [treeData, setTreeData] = useState(initialTreeData);
 
+  useEffect(() => {
+    console.log("treeData가 변경됨:", treeData);
+  }, [treeData]);
+
   const [menuItems, setMenuItems] = useState<string[]>([]); //메뉴 아이템 담을 상태
 
   const { show } = useContextMenu({
     id: MENU_ID,
   });
 
+  interface SelectedInfo {
+    selectedKey: string;
+    selectedIsLeaf: boolean;
+  }
+
+  const [selectedInfo, setSelectedInfo] = useState<SelectedInfo | null>(null);
+
   return (
     <DirectoryContainer>
       <ButtonContainer>
-        <button onClick={() => addFolder(treeData, setTreeData)}>+ 폴더</button>
+        <button
+          onClick={() => {
+            console.log("폴더 추가 버튼 클릭"); // 로그 추가
+            addFolder(treeData, setTreeData);
+          }}
+        >
+          + 폴더
+        </button>
         <button onClick={() => addFile(treeData, setTreeData)}>+ 파일</button>
       </ButtonContainer>
 
@@ -40,8 +58,18 @@ const FileDirectory: React.FC = () => {
           style={{ border: "1px solid #000" }}
           treeData={treeData}
           onRightClick={(eventInfo) => {
+            console.log("eventInfo:", eventInfo);
+            console.log("eventInfo.node.props:", eventInfo.node.props);
+
             const items = handleRightClick(eventInfo);
             setMenuItems(items);
+          }}
+          onSelect={(selectedKeys, e) => {
+            console.log("onSelect:", e);
+            setSelectedInfo({
+              selectedKey: e.node.props.eventKey,
+              selectedIsLeaf: e.node.props.isLeaf,
+            });
           }}
         />
       </div>
@@ -49,7 +77,18 @@ const FileDirectory: React.FC = () => {
         {menuItems.map((item, index) => (
           <Item
             key={index}
-            onClick={() => handleItemClick(item, treeData, setTreeData)}
+            onClick={() => {
+              if (selectedInfo) {
+                // 여기서 null 체크
+                handleItemClick(
+                  item,
+                  selectedInfo.selectedKey,
+                  selectedInfo.selectedIsLeaf,
+                  treeData,
+                  setTreeData
+                );
+              }
+            }}
           >
             {item}
           </Item>
