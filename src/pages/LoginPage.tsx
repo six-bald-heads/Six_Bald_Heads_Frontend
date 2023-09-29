@@ -24,7 +24,7 @@ const LoginPage: React.FC = () => {
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
                 console.log(response);
-                navigate('/main');
+                navigate('/');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }

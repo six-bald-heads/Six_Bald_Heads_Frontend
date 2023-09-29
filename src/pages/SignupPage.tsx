@@ -1,7 +1,12 @@
-import React, {useState, useEffect, useRef} from 'react';
-import styled from 'styled-components';
-import {useNavigate} from 'react-router-dom';
-import axios, {AxiosError} from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
+import styled, { css } from 'styled-components';
+import { useNavigate } from 'react-router-dom';
+import axios, { AxiosError } from 'axios';
+
+
+type ButtonProps = {
+    isDisabled: boolean;
+};
 
 const SignupPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -20,6 +25,14 @@ const SignupPage: React.FC = () => {
     const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
     const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
     const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+    const [emailValid, setEmailValid] = useState<boolean | null>(null);
+    const [nicknameValid, setNicknameValid] = useState<boolean | null>(null);
+
+
+    const isEmailInvalid = !email || emailError !== null;
+    const isNicknameInvalid = !nickname || nicknameError !== null;
+    const isPasswordMismatch = password !== confirmPassword;
+    const isFormIncomplete = !email || !nickname || !password || !confirmPassword;
 
     const navigate = useNavigate();
 
@@ -84,6 +97,7 @@ const SignupPage: React.FC = () => {
                 console.log('인증번호 확인 성공! : ', response.data);
                 console.log(response);
                 setCountdown(null);
+                setEmailValid(true);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -100,7 +114,6 @@ const SignupPage: React.FC = () => {
             }
         }
     };
-
 
     const handleCheckNickname = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/nickcheck';
@@ -170,14 +183,12 @@ const SignupPage: React.FC = () => {
         }
     };
 
-
     useEffect(() => {
         validateEmail(email);
         validateNickname(nickname);
         validatePassword(password);
         validateConfirmPassword(confirmPassword);
     }, [email, nickname, password, confirmPassword]);
-
 
     const handleSignupSubmit = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/signup';
@@ -224,7 +235,13 @@ const SignupPage: React.FC = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
-                        <SendCodeButton onClick={handleSendVerificationCode}>인증번호 전송</SendCodeButton>
+                        <SendCodeButton
+                            onClick={handleSendVerificationCode}
+                            isDisabled={isEmailInvalid}
+                            disabled={isEmailInvalid}
+                        >
+                            인증번호 전송
+                        </SendCodeButton>
                         {emailError && <ErrorText>{emailError}</ErrorText>}
                     </EmailSection>
                     <VerificationSection>
@@ -237,7 +254,13 @@ const SignupPage: React.FC = () => {
                             />
                             {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         </InputContainer>
-                        <VerifyCodeButton onClick={handleVerifyCode}>인증 확인</VerifyCodeButton>
+                        <VerifyCodeButton
+                            onClick={handleVerifyCode}
+                            isDisabled={!verificationCode}
+                            disabled={!verificationCode}
+                        >
+                            인증 확인
+                        </VerifyCodeButton>
                     </VerificationSection>
                     <NicknameSection>
                         <Input
@@ -246,7 +269,13 @@ const SignupPage: React.FC = () => {
                             value={nickname}
                             onChange={(e) => setNickname(e.target.value)}
                         />
-                        <CheckNicknameButton onClick={handleCheckNickname}>중복 확인</CheckNicknameButton>
+                        <CheckNicknameButton
+                            onClick={handleCheckNickname}
+                            isDisabled={isNicknameInvalid}
+                            disabled={isNicknameInvalid}
+                        >
+                            중복 확인
+                        </CheckNicknameButton>
                         {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
                     </NicknameSection>
                     <Input
@@ -264,7 +293,13 @@ const SignupPage: React.FC = () => {
                     />
                     {confirmPasswordError && <ErrorText>{confirmPasswordError}</ErrorText>}
                 </InputContainerWrapper>
-                <SignupButton onClick={handleSignupSubmit}>가입하기</SignupButton>
+                <SignupButton
+                    onClick={handleSignupSubmit}
+                    isDisabled={isFormIncomplete || isPasswordMismatch}
+                    disabled={isFormIncomplete || isPasswordMismatch}
+                >
+                    가입하기
+                </SignupButton>
             </SignupWrapper>
         </SignupContainer>
     );
@@ -349,7 +384,7 @@ const EmailSection = styled.div`
   gap: 10px;
 `;
 
-const SendCodeButton = styled.button`
+const SendCodeButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -357,6 +392,7 @@ const SendCodeButton = styled.button`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  ${(props) => props.isDisabled && DisabledButtonStyle}
 
   &:hover {
     background-color: #0056b3;
@@ -380,7 +416,7 @@ const CountdownSpan = styled.span`
   color: #6D9AE3;
 `;
 
-const VerifyCodeButton = styled.button`
+const VerifyCodeButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -388,6 +424,7 @@ const VerifyCodeButton = styled.button`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  ${(props) => props.isDisabled && DisabledButtonStyle}
 
   &:hover {
     background-color: #0056b3;
@@ -399,7 +436,7 @@ const NicknameSection = styled.div`
   gap: 10px;
 `;
 
-const CheckNicknameButton = styled.button`
+const CheckNicknameButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -407,6 +444,7 @@ const CheckNicknameButton = styled.button`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  ${(props) => props.isDisabled && DisabledButtonStyle}
 
   &:hover {
     background-color: #0056b3;
@@ -420,7 +458,7 @@ const Input = styled.input`
   font-size: 16px;
 `;
 
-const SignupButton = styled.button`
+const SignupButton = styled.button<ButtonProps>`
   width: 15%;
   padding: 10px;
   border: none;
@@ -428,6 +466,7 @@ const SignupButton = styled.button`
   background-color: #CED0D9;
   color: white;
   cursor: pointer;
+  ${(props) => props.isDisabled && DisabledButtonStyle}
 
   &:focus {
     outline: none;
@@ -450,6 +489,11 @@ const ErrorText = styled.span`
   color: red;
   font-size: 12px;
   margin-top: 5px;
+`;
+
+const DisabledButtonStyle = css`
+  background-color: #CED0D9;
+  cursor: not-allowed;
 `;
 
 export default SignupPage;
