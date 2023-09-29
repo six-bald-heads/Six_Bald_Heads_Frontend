@@ -6,6 +6,7 @@ import RightClickMenu from "./RightClickMenu";
 
 const FileDirectory: React.FC = () => {
   type Item = {
+    key: string;
     type: "folder" | "file";
     title: string;
     children?: Item[];
@@ -16,60 +17,70 @@ const FileDirectory: React.FC = () => {
     x: number;
     y: number;
   } | null>(null);
-  const [contextMenuKey, setContextMenuKey] = useState(null);
+  const [contextMenuKey, setContextMenuKey] = useState<string | null>(null);
 
+  //오른쪽 클릭 시 콘텍스트 메뉴 위치와 키 설정
   const handleRightClick = (e, key) => {
-    console.log("우클릭", e, key);
     e.preventDefault();
-    if (key.startsWith("folder-")) {
+    if (key.startsWith("folder-") || key.startsWith("file-")) {
       setContextMenuPos({ x: e.clientX, y: e.clientY });
       setContextMenuKey(key);
     }
   };
 
-  const handleCreateFile = (parentKey) => {
+  const addNewItemToParent = (
+    items: Item[],
+    newItem: Item,
+    parentKey: string | null
+  ): Item[] => {
+    return items.map((item) => {
+      if (item.key === parentKey) {
+        return {
+          ...item,
+          children: [...(item.children || []), newItem],
+        };
+      }
+      if (item.children) {
+        return {
+          ...item,
+          children: addNewItemToParent(item.children, newItem, parentKey),
+        };
+      }
+      return item;
+    });
+  };
+
+  //folder와 file 생성 로직
+  const createNewItem = (
+    itemType: "folder" | "file",
+    parentKey: string | null
+  ) => {
     setContextMenuPos(null);
 
-    //새파일 생성
-    const newFile: Item = {
-      type: "file",
-      title: "새 파일",
-      children: undefined,
-    };
-
-    const newItems = [...items];
-    const parentFolder = newItems.find((item) => item.key === parentKey);
-
-    if (parentFolder) {
-      if (!parentFolder.children) {
-        parentFolder.children = [];
-      }
-      parentFolder.children.push(newFile);
-    } else {
-      newItems.push(newFile);
-    }
-
-    setItems(newItems);
-  };
-
-  const onRightClick = (itemType) => {
-    const newItem = {
+    const newItem: Item = {
       key: `${itemType}-${Date.now()}`,
       type: itemType,
-      title: itemType === "folder" ? "  새 폴더" : "  새 파일",
+      title: itemType === "folder" ? "새 폴더" : "새 파일",
+      children: itemType === "folder" ? [] : undefined,
     };
-    setItems([...items, newItem]);
+
+    if (parentKey === null) {
+      setItems((prevItems) => [...prevItems, newItem]);
+    } else {
+      setItems((prevItems) =>
+        addNewItemToParent(prevItems, newItem, parentKey)
+      );
+    }
   };
 
-  const treeDataItem = (items) => {
-    return items.map((item, index) => {
-      return {
-        key: `${item.type}-${index}`,
-        title: item.title,
-        icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
-        children: [],
-      };
-    });
+  //입력받은 아이템 배열 트리 형식으로 변환
+  const treeDataItem = (inputItems: Item[]) => {
+    return inputItems.map((item) => ({
+      key: item.key,
+      title: item.title,
+      icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
+      children: item.children ? treeDataItem(item.children) : [],
+    }));
   };
 
   const treeData = treeDataItem(items);
@@ -78,10 +89,10 @@ const FileDirectory: React.FC = () => {
     <DirectoryContainer>
       <GlobalStyle />
       <ButtonContainer>
-        <AddButton onClick={() => onRightClick("folder")}>
+        <AddButton onClick={() => createNewItem("folder", null)}>
           <FolderOutlined /> +
         </AddButton>
-        <AddButton onClick={() => onRightClick("file")}>
+        <AddButton onClick={() => createNewItem("file", null)}>
           <FileOutlined /> +
         </AddButton>
       </ButtonContainer>
@@ -95,7 +106,11 @@ const FileDirectory: React.FC = () => {
         <RightClickMenu
           x={contextMenuPos.x}
           y={contextMenuPos.y}
-          onCreateFile={() => handleCreateFile(contextMenuKey)}
+          parentKey={contextMenuKey}
+          onCreateFolder={(parentKey) => createNewItem("folder", parentKey)}
+          onCreateFile={(parentKey) => createNewItem("file", parentKey)}
+          onRename={() => {}}
+          onDelete={() => {}}
         />
       )}
     </DirectoryContainer>
@@ -121,7 +136,7 @@ const ButtonContainer = styled.div`
   align-items: flex-start;
   width: 100%;
   border-bottom: 1px solid #ced0d9;
-  padding-botton: 15px;
+  padding-bottom: 15px;
 `;
 
 const AddButton = styled.button`

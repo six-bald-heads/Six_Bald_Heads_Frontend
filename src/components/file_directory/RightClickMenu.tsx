@@ -28,19 +28,59 @@ const ContextMenuItem = styled.div`
 interface Props {
   x: number;
   y: number;
-  onCreateFile: () => void;
+  parentKey: string | null;
+  onCreateFolder: (parentKey: string) => void;
+  onCreateFile: (parentKey: string) => void;
+  onRename: (parentKey: string) => void;
+  onDelete: (parentKey: string) => void;
 }
 
-const RightClickMenu: React.FC<Props> = ({ x, y, onCreateFile }) => {
-  return (
-    <ContextMenu left={x} top={y}>
-      <ContextMenuItem onClick={onCreateFile}>새 폴더</ContextMenuItem>
-      <ContextMenuItem onClick={onCreateFile}>새 파일</ContextMenuItem>
-      <ContextMenuItem onClick={onCreateFile}>삭제</ContextMenuItem>
-      <ContextMenuItem onClick={onCreateFile}>이름 수정하기</ContextMenuItem>
-      <ContextMenuItem onClick={onCreateFile}>x</ContextMenuItem>
-    </ContextMenu>
-  );
+const RightClickMenu: React.FC<Props> = ({
+  x,
+  y,
+  parentKey,
+  onCreateFolder,
+  onCreateFile,
+  onRename,
+  onDelete,
+}) => {
+  if (parentKey) {
+    return (
+      <ContextMenu left={x} top={y}>
+        {parentKey ? (
+          parentKey.startsWith("folder-") ? (
+            <>
+              <ContextMenuItem onClick={() => onCreateFolder(parentKey)}>
+                새 폴더
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => onCreateFile(parentKey)}>
+                새 파일
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => onRename(parentKey)}>
+                이름 수정
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => onDelete(parentKey)}>
+                삭제
+              </ContextMenuItem>
+            </>
+          ) : (
+            parentKey.startsWith("file-") && (
+              <>
+                <ContextMenuItem onClick={() => onRename(parentKey)}>
+                  이름 수정
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => onDelete(parentKey)}>
+                  삭제
+                </ContextMenuItem>
+              </>
+            )
+          )
+        ) : (
+          <ContextMenuItem onClick={() => console.log("X")}>x</ContextMenuItem>
+        )}
+      </ContextMenu>
+    );
+  }
 };
 
 export default RightClickMenu;
