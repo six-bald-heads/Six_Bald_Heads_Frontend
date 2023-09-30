@@ -90,70 +90,30 @@ const LoginWrapper = styled.div`
   background-color: #141617;
   gap: 20px;
   white-space: nowrap;
-
-  /*@media (max-width: 2000px) {
-    width: 55%;
-  }
-
-  @media (max-width: 1700px) {
-    width: 60%;
-  }
-
-  @media (max-width: 1400px) {
-    width: 65%;
-  }
-
-  @media (max-width: 1080px) {
-    width: 70%;
-  }
-
-  @media (max-width: 670px) {
-    width: 80%;
-  }*/
 `;
 
 
 const Title = styled.h1`
   color: #CED0D9;
   font-size: clamp(36px, 6vw, 70px);
-
-  /*@media (max-width: 2000px) {
-    font-size: 64px;
-  }
-
-  @media (max-width: 1700px) {
-    font-size: 56px;
-  }
-
-  @media (max-width: 1400px) {
-    font-size: 48px;
-  }
-
-  @media (max-width: 1080px) {
-    font-size: 40px;
-  }
-
-  @media (max-width: 670px) {
-    font-size: 36px;
-  }*/
 `;
 
 
 const Input = styled.input`
-  width: 50%;
+  width: 100%;
   padding: 10px;
   box-shadow: 0 0 0 3px #CED0D9;
   outline: none;
   border: none;
   border-radius: 4px;
-  font-size: 30px;
+  font-size: clamp(10px, 1vw, 15px);
 
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px #6D9AE3;
   }
 
-  @media (max-width: 2000px) {
+/*  @media (max-width: 2000px) {
     font-size: 25px;
     width: 45%;
   }
@@ -176,7 +136,7 @@ const Input = styled.input`
   @media (max-width: 670px) {
     font-size: 15px;
     width: 50%;
-  }
+  }*/
 `;
 
 const Button = styled.button`

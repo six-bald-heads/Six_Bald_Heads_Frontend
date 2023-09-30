@@ -242,8 +242,8 @@ const SignupPage: React.FC = () => {
                         >
                             인증번호 전송
                         </SendCodeButton>
-                        {emailError && <ErrorText>{emailError}</ErrorText>}
                     </EmailSection>
+                    {emailError && <ErrorText>{emailError}</ErrorText>}
                     <VerificationSection>
                         <InputContainer>
                             <Input
@@ -252,8 +252,8 @@ const SignupPage: React.FC = () => {
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
                             />
-                            {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         </InputContainer>
+                        {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         <VerifyCodeButton
                             onClick={handleVerifyCode}
                             isDisabled={!verificationCode}
@@ -276,8 +276,8 @@ const SignupPage: React.FC = () => {
                         >
                             중복 확인
                         </CheckNicknameButton>
-                        {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
                     </NicknameSection>
+                    {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
                     <Input
                         type="password"
                         placeholder="비밀번호"
@@ -323,26 +323,6 @@ const SignupWrapper = styled.div`
   justify-content: center;
   background-color: #141617;
   gap: 20px;
-
-  @media (max-width: 2000px) {
-    width: 55%;
-  }
-
-  @media (max-width: 1700px) {
-    width: 60%;
-  }
-
-  @media (max-width: 1400px) {
-    width: 65%;
-  }
-
-  @media (max-width: 1080px) {
-    width: 70%;
-  }
-
-  @media (max-width: 670px) {
-    width: 80%;
-  }
 `;
 
 const InputContainerWrapper = styled.div`
@@ -350,7 +330,7 @@ const InputContainerWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
+  gap: 15px;
   margin-bottom: 20px;
 `;
 
@@ -358,7 +338,7 @@ const Title = styled.h1`
   color: #CED0D9;
   font-size: 72px;
 
-  @media (max-width: 2000px) {
+/*  @media (max-width: 2000px) {
     font-size: 64px;
   }
 
@@ -376,7 +356,7 @@ const Title = styled.h1`
 
   @media (max-width: 670px) {
     font-size: 36px;
-  }
+  }*/
 `;
 
 const EmailSection = styled.div`
@@ -476,19 +456,19 @@ const SignupButton = styled.button<ButtonProps>`
     background-color: #6D9AE3;
   }
 
-  @media (max-width: 1080px) {
+/*  @media (max-width: 1080px) {
     width: 20%;
   }
 
   @media (max-width: 670px) {
     width: 25%;
-  }
+  }*/
 `;
 
 const ErrorText = styled.span`
   color: red;
   font-size: 12px;
-  margin-top: 5px;
+  margin-top: -5px;
 `;
 
 const DisabledButtonStyle = css`
