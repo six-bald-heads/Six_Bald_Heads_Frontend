@@ -18,6 +18,8 @@ const FileDirectory: React.FC = () => {
     y: number;
   } | null>(null);
   const [contextMenuKey, setContextMenuKey] = useState<string | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   //오른쪽 클릭 시 콘텍스트 메뉴 위치와 키 설정
   const handleRightClick = (e, key) => {
@@ -28,6 +30,7 @@ const FileDirectory: React.FC = () => {
     }
   };
 
+  //parentKey 를 가진 폴더에 새로운 아이템 추가, 재귀함수
   const addNewItemToParent = (
     items: Item[],
     newItem: Item,
@@ -50,7 +53,7 @@ const FileDirectory: React.FC = () => {
     });
   };
 
-  //folder와 file 생성 로직
+  //folder와 file 생성 로직, 생성한 아이템 위 함수로 추가
   const createNewItem = (
     itemType: "folder" | "file",
     parentKey: string | null
@@ -77,10 +80,58 @@ const FileDirectory: React.FC = () => {
   const treeDataItem = (inputItems: Item[]) => {
     return inputItems.map((item) => ({
       key: item.key,
-      title: item.title,
+      title:
+        editingKey === item.key ? (
+          <input
+            type="text"
+            defaultValue={item.title}
+            onBlur={(e) => {
+              // 변경된 이름을 저장하는 로직
+              if (!isSaved) {
+                const newTitle = e.target.value;
+                setItems((prevItems) => {
+                  //아이템 업데이터 함수. 아이템 트리 순회 하면서 특정 key title 변경
+                  const updateItemTitle = (item: Item[]): Item[] => {
+                    return item.map((item) => {
+                      if (item.key === editingKey) {
+                        return {
+                          ...item,
+                          title: newTitle,
+                        };
+                      }
+                      if (item.children) {
+                        return {
+                          ...item,
+                          children: updateItemTitle(item.children),
+                        };
+                      }
+                      return item;
+                    });
+                  };
+                  return updateItemTitle(prevItems);
+                });
+              }
+              setEditingKey(null);
+              setIsSaved(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setIsSaved(true);
+                (e.target as HTMLInputElement).blur();
+              }
+            }}
+          />
+        ) : (
+          item.title
+        ),
       icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
       children: item.children ? treeDataItem(item.children) : [],
     }));
+  };
+
+  const handleRenameStart = (key) => {
+    setEditingKey(key);
+    setContextMenuPos(null); //콘텍스트 메뉴 숨기기
   };
 
   const treeData = treeDataItem(items);
@@ -109,7 +160,9 @@ const FileDirectory: React.FC = () => {
           parentKey={contextMenuKey}
           onCreateFolder={(parentKey) => createNewItem("folder", parentKey)}
           onCreateFile={(parentKey) => createNewItem("file", parentKey)}
-          onRename={() => {}}
+          onRename={(key) => {
+            handleRenameStart(key);
+          }}
           onDelete={() => {}}
         />
       )}
@@ -136,7 +189,7 @@ const ButtonContainer = styled.div`
   align-items: flex-start;
   width: 100%;
   border-bottom: 1px solid #ced0d9;
-  padding-bottom: 15px;
+  padding-bottom: 2px;
 `;
 
 const AddButton = styled.button`
