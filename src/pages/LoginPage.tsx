@@ -72,8 +72,8 @@ const LoginPage: React.FC = () => {
 };
 
 const LoginContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
+  width: 100vw; // 모바일 환경 조심할 것: vw, vh, % 아이폰은 힘들다! 특히 safari vh 때문에!
+  height: 100vh; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,8 +89,9 @@ const LoginWrapper = styled.div`
   justify-content: center;
   background-color: #141617;
   gap: 20px;
+  white-space: nowrap;
 
-  @media (max-width: 2000px) {
+  /*@media (max-width: 2000px) {
     width: 55%;
   }
 
@@ -108,15 +109,15 @@ const LoginWrapper = styled.div`
 
   @media (max-width: 670px) {
     width: 80%;
-  }
+  }*/
 `;
 
 
 const Title = styled.h1`
   color: #CED0D9;
-  font-size: 72px;
+  font-size: clamp(36px, 6vw, 70px);
 
-  @media (max-width: 2000px) {
+  /*@media (max-width: 2000px) {
     font-size: 64px;
   }
 
@@ -134,7 +135,7 @@ const Title = styled.h1`
 
   @media (max-width: 670px) {
     font-size: 36px;
-  }
+  }*/
 `;
 
 
@@ -179,7 +180,9 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
+  /*
   width: 15%;
+  */
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -195,13 +198,13 @@ const Button = styled.button`
     background-color: #6D9AE3;
   }
 
-  @media (max-width: 1080px) {
+  /*@media (max-width: 1080px) {
     width: 20%;
   }
 
   @media (max-width: 670px) {
     width: 25%;
-  }
+  }*/
 `;
 
 export default LoginPage;
