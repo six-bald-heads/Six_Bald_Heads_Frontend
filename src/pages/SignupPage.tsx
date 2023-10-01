@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled, { css } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
+import React, {useState, useEffect, useRef} from 'react';
+import styled, {css} from 'styled-components';
+import {useNavigate} from 'react-router-dom';
+import axios, {AxiosError} from 'axios';
 import logo from "../assets/logo.png";
 import logofill from '../assets/logo-fill.png'
 import backgroundImage from "../assets/bg-login.jpeg";
@@ -244,6 +244,10 @@ const SignupPage: React.FC = () => {
         }
     }, [email, nickname, password, confirmPassword, emailError, nicknameError, passwordError, confirmPasswordError, emailValid, nicknameValid]);
 
+    const handleLogin = () => {
+        navigate('/login');
+    };
+
     return (
         <SignupContainer>
             <SignupWrapper>
@@ -302,31 +306,35 @@ const SignupPage: React.FC = () => {
                     </NicknameSection>
                     {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
                     <PasswordSection>
-                    <Input
-                        type="password"
-                        placeholder="비밀번호"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                        <Input
+                            type="password"
+                            placeholder="비밀번호"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </PasswordSection>
                     {passwordError && <ErrorText>{passwordError}</ErrorText>}
                     <PasswordSection>
-                    <Input
-                        type="password"
-                        placeholder="비밀번호 확인"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
+                        <Input
+                            type="password"
+                            placeholder="비밀번호 확인"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
                     </PasswordSection>
                     {confirmPasswordError && <ErrorText>{confirmPasswordError}</ErrorText>}
                 </InputContainerWrapper>
-                <SignupButton
+                <Button
                     onClick={handleSignupSubmit}
                     isDisabled={isFormIncomplete || isPasswordMismatch}
                     disabled={isFormIncomplete || isPasswordMismatch}
                 >
                     가입하기
-                </SignupButton>
+                </Button>
+                <Button
+                    onClick={handleLogin}
+                    isDisabled={false}
+                    disabled={false}>로그인</Button>
             </SignupWrapper>
             <ImageHalf>
             </ImageHalf>
@@ -402,12 +410,12 @@ const SendCodeButton = styled.button<ButtonProps>`
   cursor: pointer;
   transition: background-color 0.3s;
   white-space: nowrap;
-  ${(props) => props.isDisabled && DisabledButtonStyle}
 
+  ${(props) => props.isDisabled && DisabledButtonStyle}
   &:focus {
     outline: none;
   }
-  
+
   &:hover {
     background-color: #0056b3;
   }
@@ -438,12 +446,12 @@ const VerifyCodeButton = styled.button<ButtonProps>`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+
   ${(props) => props.isDisabled && DisabledButtonStyle}
-  
   &:focus {
     outline: none;
   }
-  
+
   &:hover {
     background-color: #0056b3;
   }
@@ -462,8 +470,8 @@ const CheckNicknameButton = styled.button<ButtonProps>`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
-  ${(props) => props.isDisabled && DisabledButtonStyle}
 
+  ${(props) => props.isDisabled && DisabledButtonStyle}
   &:focus {
     outline: none;
   }
@@ -492,7 +500,7 @@ const Input = styled.input`
   }
 `;
 
-const SignupButton = styled.button<ButtonProps>`
+const Button = styled.button<ButtonProps>`
   width: clamp(36px, 50vw, 300px);
   padding: 10px;
   border: none;
@@ -500,8 +508,8 @@ const SignupButton = styled.button<ButtonProps>`
   background-color: #CED0D9;
   color: white;
   cursor: pointer;
-  ${(props) => props.isDisabled && DisabledButtonStyle}
 
+  ${(props) => props.isDisabled && DisabledButtonStyle}
   &:focus {
     outline: none;
   }
