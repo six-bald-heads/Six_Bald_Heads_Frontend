@@ -244,7 +244,6 @@ const SignupPage: React.FC = () => {
         }
     }, [email, nickname, password, confirmPassword, emailError, nicknameError, passwordError, confirmPasswordError, emailValid, nicknameValid]);
 
-
     return (
         <SignupContainer>
             <SignupWrapper>
@@ -302,19 +301,23 @@ const SignupPage: React.FC = () => {
                         </CheckNicknameButton>
                     </NicknameSection>
                     {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
+                    <PasswordSection>
                     <Input
                         type="password"
                         placeholder="비밀번호"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    </PasswordSection>
                     {passwordError && <ErrorText>{passwordError}</ErrorText>}
+                    <PasswordSection>
                     <Input
                         type="password"
                         placeholder="비밀번호 확인"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+                    </PasswordSection>
                     {confirmPasswordError && <ErrorText>{confirmPasswordError}</ErrorText>}
                 </InputContainerWrapper>
                 <SignupButton
@@ -468,6 +471,11 @@ const CheckNicknameButton = styled.button<ButtonProps>`
   &:hover {
     background-color: #0056b3;
   }
+`;
+
+const PasswordSection = styled.div`
+  display: flex;
+  gap: 10px;
 `;
 
 const Input = styled.input`
