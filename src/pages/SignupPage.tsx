@@ -2,7 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
+import logo from "../assets/logo.png";
+import logofill from '../assets/logo-fill.png'
+import backgroundImage from "../assets/bg-login.jpeg";
 
+const emailRegex = new RegExp(
+    '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
+);
+const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
+const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
 
 type ButtonProps = {
     isDisabled: boolean;
@@ -14,20 +22,17 @@ const SignupPage: React.FC = () => {
     const [nickname, setNickname] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
     const [countdown, setCountdown] = useState<number | null>(null);
     const timerIdRef = useRef<number | null>(null);
+
     const [emailError, setEmailError] = useState<string | null>(null);
     const [nicknameError, setNicknameError] = useState<string | null>(null);
     const [passwordError, setPasswordError] = useState<string | null>(null);
-    const emailRegex = new RegExp(
-        '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
-    );
-    const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
-    const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
     const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+
     const [emailValid, setEmailValid] = useState<boolean | null>(null);
     const [nicknameValid, setNicknameValid] = useState<boolean | null>(null);
-
 
     const isEmailInvalid = !email || emailError !== null;
     const isNicknameInvalid = !nickname || nicknameError !== null;
@@ -126,6 +131,7 @@ const SignupPage: React.FC = () => {
             if (response.status === 200) {
                 console.log('닉네임 중복 확인 성공! : ', response.data);
                 console.log(response);
+                setNicknameValid(true);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -222,11 +228,29 @@ const SignupPage: React.FC = () => {
         }
     };
 
+    const [isValidationPassed, setIsValidationPassed] = useState(false);
+
+    useEffect(() => {
+        if (
+            emailError === null && email !== '' &&
+            nicknameError === null && nickname !== '' &&
+            passwordError === null && password !== '' &&
+            confirmPasswordError === null && confirmPassword !== '' &&
+            emailValid && nicknameValid
+        ) {
+            setIsValidationPassed(true);
+        } else {
+            setIsValidationPassed(false);
+        }
+    }, [email, nickname, password, confirmPassword, emailError, nicknameError, passwordError, confirmPasswordError, emailValid, nicknameValid]);
+
 
     return (
         <SignupContainer>
             <SignupWrapper>
-                <Title>회원가입</Title>
+                <Logo src={isValidationPassed ? logofill : logo}>
+                </Logo>
+                <Title>반가워요!</Title>
                 <InputContainerWrapper>
                     <EmailSection>
                         <Input
@@ -252,8 +276,8 @@ const SignupPage: React.FC = () => {
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
                             />
+                            {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         </InputContainer>
-                        {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         <VerifyCodeButton
                             onClick={handleVerifyCode}
                             isDisabled={!verificationCode}
@@ -301,6 +325,8 @@ const SignupPage: React.FC = () => {
                     가입하기
                 </SignupButton>
             </SignupWrapper>
+            <ImageHalf>
+            </ImageHalf>
         </SignupContainer>
     );
 };
@@ -315,7 +341,7 @@ const SignupContainer = styled.div`
 `;
 
 const SignupWrapper = styled.div`
-  width: 50%;
+  width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -323,10 +349,30 @@ const SignupWrapper = styled.div`
   justify-content: center;
   background-color: #141617;
   gap: 20px;
+  flex: 1;
+  white-space: nowrap;
+`;
+
+const ImageHalf = styled.div`
+  flex: 1;
+  height: 100%;
+  opacity: 0.3;
+  background-image: url(${backgroundImage});
+  background-size: cover;
+  background-position: left center;
+  display: none;
+  border-radius: 3% 0 0 3%;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+const Logo = styled.img`
+  width: 30%;
 `;
 
 const InputContainerWrapper = styled.div`
-  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -336,27 +382,7 @@ const InputContainerWrapper = styled.div`
 
 const Title = styled.h1`
   color: #CED0D9;
-  font-size: 72px;
-
-/*  @media (max-width: 2000px) {
-    font-size: 64px;
-  }
-
-  @media (max-width: 1700px) {
-    font-size: 56px;
-  }
-
-  @media (max-width: 1400px) {
-    font-size: 48px;
-  }
-
-  @media (max-width: 1080px) {
-    font-size: 40px;
-  }
-
-  @media (max-width: 670px) {
-    font-size: 36px;
-  }*/
+  font-size: clamp(36px, 6vw, 50px);
 `;
 
 const EmailSection = styled.div`
@@ -372,8 +398,13 @@ const SendCodeButton = styled.button<ButtonProps>`
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  white-space: nowrap;
   ${(props) => props.isDisabled && DisabledButtonStyle}
 
+  &:focus {
+    outline: none;
+  }
+  
   &:hover {
     background-color: #0056b3;
   }
@@ -405,7 +436,11 @@ const VerifyCodeButton = styled.button<ButtonProps>`
   cursor: pointer;
   transition: background-color 0.3s;
   ${(props) => props.isDisabled && DisabledButtonStyle}
-
+  
+  &:focus {
+    outline: none;
+  }
+  
   &:hover {
     background-color: #0056b3;
   }
@@ -426,6 +461,10 @@ const CheckNicknameButton = styled.button<ButtonProps>`
   transition: background-color 0.3s;
   ${(props) => props.isDisabled && DisabledButtonStyle}
 
+  &:focus {
+    outline: none;
+  }
+
   &:hover {
     background-color: #0056b3;
   }
@@ -434,12 +473,19 @@ const CheckNicknameButton = styled.button<ButtonProps>`
 const Input = styled.input`
   padding: 10px;
   border-radius: 4px;
-  border: 1px solid #ccc;
   font-size: 16px;
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 3px #CED0D9;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #6D9AE3;
+  }
 `;
 
 const SignupButton = styled.button<ButtonProps>`
-  width: 15%;
+  width: clamp(36px, 50vw, 300px);
   padding: 10px;
   border: none;
   border-radius: 4px;
@@ -455,14 +501,6 @@ const SignupButton = styled.button<ButtonProps>`
   &:hover {
     background-color: #6D9AE3;
   }
-
-/*  @media (max-width: 1080px) {
-    width: 20%;
-  }
-
-  @media (max-width: 670px) {
-    width: 25%;
-  }*/
 `;
 
 const ErrorText = styled.span`
