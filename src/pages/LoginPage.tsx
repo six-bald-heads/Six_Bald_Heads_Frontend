@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/bg-login.jpeg';
 import logo from '../assets/logo.png'
 import logofill from '../assets/logo-fill.png'
+import FindPasswordModal from '../components/FindPasswordModal.tsx'
 
 const emailRegex = new RegExp(
     '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
@@ -64,10 +65,20 @@ const LoginPage: React.FC = () => {
         }
     };
 
-
     const handleSignup = () => {
         navigate('/signup');
     };
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleOpenModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+
 
     return (
         <LoginContainer>
@@ -89,6 +100,8 @@ const LoginPage: React.FC = () => {
                 />
                 <Button onClick={handleLogin}>로그인</Button>
                 <Button onClick={handleSignup}>회원가입</Button>
+                <FindPasswordButton onClick={handleOpenModal}>비밀번호를 잊으셨나요?</FindPasswordButton>
+                {isModalOpen && <FindPasswordModal onClose={handleCloseModal} />}
             </LoginWrapper>
             <ImageHalf>
             </ImageHalf>
@@ -171,6 +184,24 @@ const Button = styled.button`
 
   &:hover {
     background-color: #6D9AE3;
+  }
+`;
+
+const FindPasswordButton = styled.button`
+  width: clamp(30px, 50vw, 200px);
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #6D9AE3;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    color: #CED0D9;
   }
 `;
 

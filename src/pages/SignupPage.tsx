@@ -210,7 +210,7 @@ const SignupPage: React.FC = () => {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('회원가입 성공! : ', response.data);
-                navigate('/login');  // 회원가입 성공 시 로그인 페이지로 이동
+                navigate('/login');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
