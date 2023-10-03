@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createGlobalStyle, styled } from "styled-components";
 import { Tree } from "antd";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
@@ -20,6 +20,29 @@ const FileDirectory: React.FC = () => {
   const [contextMenuKey, setContextMenuKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const contextMenuRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      console.log("contextMenuRef.current:", contextMenuRef.current);
+      console.log("e.target", e.target);
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(e.target as Node)
+      ) {
+        console.log("외부 클릭 감지, 모달 닫기");
+        setContextMenuPos(null);
+      }
+    };
+
+    if (contextMenuPos! == null) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [contextMenuRef, contextMenuPos]);
 
   //오른쪽 클릭 시 콘텍스트 메뉴 위치와 키 설정
   const handleRightClick = (e, key) => {
@@ -134,6 +157,27 @@ const FileDirectory: React.FC = () => {
     setContextMenuPos(null); //콘텍스트 메뉴 숨기기
   };
 
+  //삭제 기능
+  const deleteItemFromParent = (items: Item[], targetKey: string): Item[] => {
+    return items.reduce<Item[]>((acc, item) => {
+      if (item.key === targetKey) return acc; // 타겟키와 일치하면 아예 반환 배열에 추가하지 않음 (삭제)
+
+      if (item.children) {
+        return [
+          ...acc,
+          { ...item, children: deleteItemFromParent(item.children, targetKey) },
+        ];
+      }
+
+      return [...acc, item];
+    }, []);
+  };
+
+  const onDelete = (key: string) => {
+    setContextMenuPos(null);
+    setItems((prevItems) => deleteItemFromParent(prevItems, key));
+  };
+
   const treeData = treeDataItem(items);
 
   return (
@@ -163,7 +207,11 @@ const FileDirectory: React.FC = () => {
           onRename={(key) => {
             handleRenameStart(key);
           }}
-          onDelete={() => {}}
+          onDelete={() => {
+            if (contextMenuKey !== null) {
+              onDelete(contextMenuKey);
+            }
+          }}
         />
       )}
     </DirectoryContainer>
