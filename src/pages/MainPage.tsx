@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import FileDirectory from '../components/FileDirectory';
 import CodeEditor from '../components/CodeEditor';
 import {Resizable} from 're-resizable';
-import Snackbar from "../components/Snackbar";
+import Success from "../components/Snackbar/Success.tsx";
 
 const MainPage: React.FC = () => {
     const [showSnackbar, setShowSnackbar] = useState(false);  // 스낵바의 표시 여부를 관리하는 상태
@@ -19,14 +19,34 @@ const MainPage: React.FC = () => {
         <MainContainer>
             <MainContent>
                 <Resizable
-                    // ... (기존 코드)
+                    defaultSize={{width: '20%', height: '100%'}}
+                    minWidth={'10%'}
+                    maxWidth={'50%'}
+                    enable={{
+                        top: false,
+                        right: true,
+                        bottom: false,
+                        left: false,
+                        topRight: false,
+                        bottomRight: false,
+                        bottomLeft: false,
+                        topLeft: false,
+                    }}
+                    handleStyles={{
+                        right: {
+                            width: '15px',
+                            height: '100%',
+                            right: '0px',
+                            backgroundColor: '#222426',
+                        },
+                    }}
                 >
                     <FileDirectory />
                 </Resizable>
                 <CodeEditor />
             </MainContent>
             <ShowSnackbarButton onClick={handleShowSnackbar}>스낵바 보이기</ShowSnackbarButton>
-            <Snackbar showSnackbar={showSnackbar} message="success" />
+            <Success showSnackbar={showSnackbar} message="success" />
         </MainContainer>
     );
 }
