@@ -2,11 +2,14 @@ import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import axios, {AxiosError} from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.ts';
 
 import backgroundImage from '../assets/bg-login.jpeg';
 import logo from '../assets/logo.png'
 import logofill from '../assets/logo-fill.png'
 import FindPasswordModal from '../components/FindPasswordModal.tsx'
+
+
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -27,6 +30,7 @@ const LoginPage: React.FC = () => {
         }
     }, [email, password]);
 
+    const { login } = useAuth();
 
     const handleLogin = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/login';
@@ -39,7 +43,12 @@ const LoginPage: React.FC = () => {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
-                console.log(response);
+
+                localStorage.setItem('accessToken', response.data.data.accessToken);
+                localStorage.setItem('refreshToken', response.data.data.refreshToken);
+
+                login();
+
                 navigate('/');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
