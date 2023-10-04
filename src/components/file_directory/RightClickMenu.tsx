@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import React from "react";
 
 interface ContextMenuProps {
   left: number;
@@ -35,37 +36,23 @@ interface Props {
   onDelete: (parentKey: string) => void;
 }
 
-const RightClickMenu: React.FC<Props> = ({
-  x,
-  y,
-  parentKey,
-  onCreateFolder,
-  onCreateFile,
-  onRename,
-  onDelete,
-}) => {
-  if (parentKey) {
-    return (
-      <ContextMenu left={x} top={y}>
-        {parentKey ? (
-          parentKey.startsWith("folder-") ? (
-            <>
-              <ContextMenuItem onClick={() => onCreateFolder(parentKey)}>
-                새 폴더
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => onCreateFile(parentKey)}>
-                새 파일
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => onRename(parentKey)}>
-                이름 수정
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => onDelete(parentKey)}>
-                삭제
-              </ContextMenuItem>
-            </>
-          ) : (
-            parentKey.startsWith("file-") && (
+const RightClickMenu = React.forwardRef<HTMLDivElement, Props>(
+  (
+    { x, y, parentKey, onCreateFolder, onCreateFile, onRename, onDelete },
+    ref
+  ) => {
+    if (parentKey) {
+      return (
+        <ContextMenu left={x} top={y} ref={ref}>
+          {parentKey ? (
+            parentKey.startsWith("folder-") ? (
               <>
+                <ContextMenuItem onClick={() => onCreateFolder(parentKey)}>
+                  새 폴더
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => onCreateFile(parentKey)}>
+                  새 파일
+                </ContextMenuItem>
                 <ContextMenuItem onClick={() => onRename(parentKey)}>
                   이름 수정
                 </ContextMenuItem>
@@ -73,14 +60,27 @@ const RightClickMenu: React.FC<Props> = ({
                   삭제
                 </ContextMenuItem>
               </>
+            ) : (
+              parentKey.startsWith("file-") && (
+                <>
+                  <ContextMenuItem onClick={() => onRename(parentKey)}>
+                    이름 수정
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => onDelete(parentKey)}>
+                    삭제
+                  </ContextMenuItem>
+                </>
+              )
             )
-          )
-        ) : (
-          <ContextMenuItem onClick={() => console.log("X")}>x</ContextMenuItem>
-        )}
-      </ContextMenu>
-    );
+          ) : (
+            <ContextMenuItem onClick={() => console.log("X")}>
+              x
+            </ContextMenuItem>
+          )}
+        </ContextMenu>
+      );
+    }
   }
-};
+);
 
 export default RightClickMenu;

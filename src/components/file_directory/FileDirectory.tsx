@@ -20,22 +20,19 @@ const FileDirectory: React.FC = () => {
   const [contextMenuKey, setContextMenuKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const contextMenuRef = useRef<HTMLElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      console.log("contextMenuRef.current:", contextMenuRef.current);
-      console.log("e.target", e.target);
       if (
         contextMenuRef.current &&
         !contextMenuRef.current.contains(e.target as Node)
       ) {
-        console.log("외부 클릭 감지, 모달 닫기");
         setContextMenuPos(null);
       }
     };
 
-    if (contextMenuPos! == null) {
+    if (contextMenuPos !== null) {
       document.addEventListener("mousedown", handleOutsideClick);
     }
 
@@ -199,6 +196,7 @@ const FileDirectory: React.FC = () => {
       />
       {contextMenuPos && (
         <RightClickMenu
+          ref={contextMenuRef}
           x={contextMenuPos.x}
           y={contextMenuPos.y}
           parentKey={contextMenuKey}
