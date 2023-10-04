@@ -32,7 +32,10 @@ const SignupPage: React.FC = () => {
     const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
     const [emailValid, setEmailValid] = useState<boolean | null>(null);
+    const [isEmailVerified, setIsEmailVerified] = useState(false);
     const [nicknameValid, setNicknameValid] = useState<boolean | null>(null);
+    const [isNicknameVerified, setIsNicknameVerified] = useState(false);
+
 
     const isEmailInvalid = !email || emailError !== null;
     const isNicknameInvalid = !nickname || nicknameError !== null;
@@ -103,6 +106,7 @@ const SignupPage: React.FC = () => {
                 console.log(response);
                 setCountdown(null);
                 setEmailValid(true);
+                setIsEmailVerified(true);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -132,6 +136,7 @@ const SignupPage: React.FC = () => {
                 console.log('닉네임 중복 확인 성공! : ', response.data);
                 console.log(response);
                 setNicknameValid(true);
+                setIsNicknameVerified(true);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -163,7 +168,7 @@ const SignupPage: React.FC = () => {
         if (nickname === '') {
             setNicknameError(null);
         } else if (!nicknameRegex.test(nickname)) {
-            setNicknameError('닉네임은 4~10자의 영문자, 숫자, 한글로 구성되어야 합니다.');
+            setNicknameError('닉네임은 4~10자의 영문자, 숫자, 한글(음절)로 구성되어야 합니다.');
         } else {
             setNicknameError(null);
         }
@@ -255,17 +260,19 @@ const SignupPage: React.FC = () => {
                 </Logo>
                 <Title>반가워요!</Title>
                 <InputContainerWrapper>
+                    <PlainText>이메일</PlainText>
                     <EmailSection>
                         <Input
                             type="email"
                             placeholder="이메일"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            disabled={isEmailVerified}
                         />
                         <SendCodeButton
                             onClick={handleSendVerificationCode}
-                            isDisabled={isEmailInvalid}
-                            disabled={isEmailInvalid}
+                            isDisabled={isEmailInvalid || isEmailVerified}
+                            disabled={isEmailInvalid || isEmailVerified}
                         >
                             인증번호 전송
                         </SendCodeButton>
@@ -275,36 +282,40 @@ const SignupPage: React.FC = () => {
                         <InputContainer>
                             <Input
                                 type="text"
-                                placeholder="이메일 인증코드"
+                                placeholder="인증코드"
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value)}
+                                disabled={isEmailVerified}
                             />
                             {countdown !== null && <CountdownSpan>{formattedCountdown}</CountdownSpan>}
                         </InputContainer>
                         <VerifyCodeButton
                             onClick={handleVerifyCode}
-                            isDisabled={!verificationCode}
-                            disabled={!verificationCode}
+                            isDisabled={!verificationCode || isEmailVerified}
+                            disabled={!verificationCode || isEmailVerified}
                         >
                             인증 확인
                         </VerifyCodeButton>
                     </VerificationSection>
+                    <PlainText>닉네임</PlainText>
                     <NicknameSection>
                         <Input
                             type="text"
                             placeholder="닉네임"
                             value={nickname}
                             onChange={(e) => setNickname(e.target.value)}
+                            disabled={isNicknameVerified}
                         />
                         <CheckNicknameButton
                             onClick={handleCheckNickname}
-                            isDisabled={isNicknameInvalid}
-                            disabled={isNicknameInvalid}
+                            isDisabled={isNicknameInvalid || isNicknameVerified}
+                            disabled={isNicknameInvalid || isNicknameVerified}
                         >
                             중복 확인
                         </CheckNicknameButton>
                     </NicknameSection>
                     {nicknameError && <ErrorText>{nicknameError}</ErrorText>}
+                    <PlainText>비밀번호</PlainText>
                     <PasswordSection>
                         <Input
                             type="password"
@@ -487,6 +498,7 @@ const PasswordSection = styled.div`
 `;
 
 const Input = styled.input`
+  width: clamp(36px, 50vw, 200px);
   padding: 10px;
   border-radius: 4px;
   font-size: 16px;
@@ -497,6 +509,11 @@ const Input = styled.input`
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px #6D9AE3;
+  }
+
+  &:disabled {
+    background-color: #CED0D9;
+    cursor: not-allowed;
   }
 `;
 
@@ -517,6 +534,13 @@ const Button = styled.button<ButtonProps>`
   &:hover {
     background-color: #6D9AE3;
   }
+`;
+
+const PlainText = styled.span`
+  color: #6D9AE3;
+  font-size: 15px;
+  margin-bottom: -5px;
+  font-weight: bold;
 `;
 
 const ErrorText = styled.span`
