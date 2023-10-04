@@ -8,12 +8,6 @@ import logo from '../assets/logo.png'
 import logofill from '../assets/logo-fill.png'
 import FindPasswordModal from '../components/FindPasswordModal.tsx'
 
-const emailRegex = new RegExp(
-    '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
-);
-const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
-
-
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -26,7 +20,7 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
         // 이메일과 비밀번호의 유효성 검사
-        if (emailRegex.test(email) && passwordRegex.test(password)) {
+        if (email && password) {
             setIsValidationPassed(true);
         } else {
             setIsValidationPassed(false);
@@ -88,7 +82,7 @@ const LoginPage: React.FC = () => {
                 <Title>SBH IDE</Title>
                 <Input
                     type="email"
-                    placeholder="이메일"
+                    placeholder="example@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
