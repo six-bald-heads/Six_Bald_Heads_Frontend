@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { createGlobalStyle, styled } from "styled-components";
-import { Tree } from "antd";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
 import RightClickMenu from "./RightClickMenu";
+import { fetchFileTree } from "./api";
+import {
+  DirectoryContainer,
+  ButtonContainer,
+  AddButton,
+  TreeFile,
+  GlobalStyle,
+} from "./styles/FileDirectoryStyles";
 
 const FileDirectory: React.FC = () => {
   type Item = {
@@ -21,6 +27,34 @@ const FileDirectory: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const MyComponent = () => {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+      fetchFileTree()
+        .then((response) => {
+          setData(response.data);
+        })
+        .catch((error) => {
+          console.error("API 요청 에러", error);
+
+          if (error.response) {
+            switch (error.response.status) {
+              case 401:
+                alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
+                break;
+              case 400:
+                alert("존재하지 않는 폴더입니다. ");
+                break;
+              default:
+                alert("알 수 없는 에러가 발생했습니다.");
+            }
+          } else {
+            alert("네트워크 에러 또는 알 수 없는 에러가 발생했습니다.");
+          }
+        });
+    }, []);
+  };
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -215,60 +249,5 @@ const FileDirectory: React.FC = () => {
     </DirectoryContainer>
   );
 };
-
-const DirectoryContainer = styled.div`
-  height: 100%;
-  background-color: #303336;
-  flex: 1;
-  box-sizing: border-box;
-  padding: 5px;
-  padding-left: 15px;
-  padding-right: 30px;
-  color: #ced0d9;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  width: 100%;
-  border-bottom: 1px solid #ced0d9;
-  padding-bottom: 2px;
-`;
-
-const AddButton = styled.button`
-  background-color: #6d9ae3;
-  border: none;
-  color: white;
-  text-align: center;
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
-  margin: 0.25rem 0.25rem;
-  padding: 5px 10px;
-  transition-duration: 0.4s;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #6486bd;
-  }
-`;
-
-const TreeFile = styled(Tree)`
-  && {
-    background-color: #303336;
-    font-size: 14px;
-    margin: 3px;
-    color: white;
-  }
-`;
-
-const GlobalStyle = createGlobalStyle`
-  .ant-tree-node-content-wrapper.ant-tree-node-selected {
-    background-color: #303336 !important;
-  }
-`;
 
 export default FileDirectory;
