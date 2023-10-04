@@ -82,7 +82,7 @@ const LoginPage: React.FC = () => {
                 <Title>SBH IDE</Title>
                 <Input
                     type="email"
-                    placeholder="example@example.com"
+                    placeholder="이메일"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
@@ -155,7 +155,6 @@ const Input = styled.input`
   outline: none;
   border: none;
   border-radius: 4px;
-  font-size: clamp(10px, 1vw, 15px);
 
   &:focus {
     outline: none;

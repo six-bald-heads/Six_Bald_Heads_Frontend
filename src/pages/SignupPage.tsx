@@ -428,7 +428,7 @@ const SendCodeButton = styled.button<ButtonProps>`
   }
 
   &:hover {
-    background-color: #0056b3;
+    background-color: ${props => props.isDisabled ? '#CED0D9' : '#0056b3'};
   }
 `;
 
@@ -464,7 +464,7 @@ const VerifyCodeButton = styled.button<ButtonProps>`
   }
 
   &:hover {
-    background-color: #0056b3;
+    background-color: ${props => props.isDisabled ? '#CED0D9' : '#0056b3'};
   }
 `;
 
@@ -488,7 +488,7 @@ const CheckNicknameButton = styled.button<ButtonProps>`
   }
 
   &:hover {
-    background-color: #0056b3;
+    background-color: ${props => props.isDisabled ? '#CED0D9' : '#0056b3'};
   }
 `;
 
@@ -522,7 +522,7 @@ const Button = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #CED0D9;
+  background-color: #6D9AE3;
   color: white;
   cursor: pointer;
 
@@ -532,7 +532,7 @@ const Button = styled.button<ButtonProps>`
   }
 
   &:hover {
-    background-color: #6D9AE3;
+    background-color: ${props => props.isDisabled ? '#CED0D9' : '#0056b3'};
   }
 `;
 
