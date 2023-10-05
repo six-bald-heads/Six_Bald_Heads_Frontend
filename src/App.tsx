@@ -6,7 +6,6 @@ import SignupPage from "./pages/SignupPage";
 import PrivateRoute from "./components/PrivateRoute";
 import {AuthProvider} from "./context/AuthProvider.tsx";
 
-
 const App: React.FC = () => {
     return (
         <AuthProvider>
