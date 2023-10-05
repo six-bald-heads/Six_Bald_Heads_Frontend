@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import FileDirectory from "../components/file_directory/FileDirectory";
+import FileDirectory from "../components/Filedirectory/FileDirectory";
 import CodeEditor from "../components/CodeEditor";
 import { Resizable } from "re-resizable";
 

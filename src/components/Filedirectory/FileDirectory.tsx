@@ -217,15 +217,7 @@ const FileDirectory: React.FC = () => {
     setItems((prevItems) => deleteItemFromParent(prevItems, key));
   };
 
-  type DropInfo = {
-    dragNode: any;
-    dragNodesKeys: any[];
-    node: any;
-    dropPosition: number;
-    dropToGap: boolean;
-  };
-
-  const handleDrop = (info: DropInfo) => {
+  const handleDrop = (info) => {
     const { dragNode, node, dropPosition } = info;
 
     console.log(dragNode.props);
