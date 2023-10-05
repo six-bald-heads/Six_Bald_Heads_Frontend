@@ -118,24 +118,6 @@ const EditorWrapper = styled.div<{ fontSize: number }>`
 
   .cm-outer-container {
     font-size: ${props => props.fontSize}px;
-
-    /* CodeMirror 컴포넌트의 스크롤바 스타일 */
-    ::-webkit-scrollbar {
-      width: 12px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background-color: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #CED0D9;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background-color: #b0b0b0;
-    }
   }
 `;
 
