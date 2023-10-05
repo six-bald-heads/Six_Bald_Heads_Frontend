@@ -72,11 +72,7 @@ const RightClickMenu = React.forwardRef<HTMLDivElement, Props>(
                 </>
               )
             )
-          ) : (
-            <ContextMenuItem onClick={() => console.log("X")}>
-              x
-            </ContextMenuItem>
-          )}
+          ) : null}
         </ContextMenu>
       );
     }
