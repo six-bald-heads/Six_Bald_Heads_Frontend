@@ -9,6 +9,7 @@ import {
   TreeFile,
   GlobalStyle,
 } from "./styles/FileDirectoryStyles";
+import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
 
 const FileDirectory: React.FC = () => {
   type Item = {
@@ -209,6 +210,47 @@ const FileDirectory: React.FC = () => {
     setItems((prevItems) => deleteItemFromParent(prevItems, key));
   };
 
+  const handleDrop = (info) => {
+    const { dragNode, node, dropPosition } = info;
+
+    console.log("dropPosition:", dropPosition);
+    console.log("dragNode:", dragNode);
+    console.log("dragNode.props:", dragNode.props);
+    console.log("dragNode.data:", dragNode.data);
+    console.log("node:", node);
+    console.log("node.props:", node.props);
+    console.log("node.data:", node.data);
+
+    // 원래의 트리에서 드래그한 노드 삭제
+    let newData = findAndRemove(items, dragNode.key);
+
+    if (dragNode.props.data.type === "folder" || dropPosition === 1) {
+      // 드롭하는 노드가 폴더거나, 노드 바로 아래로 드롭하는 경우
+      newData = addNodeToTree(newData, dragNode.props.data, node.key, 0);
+    } else {
+      console.log("dragNode.props.data.type:", dragNode.props.data.type);
+      const parentNode = findParent(newData, node.key); // 드롭하는 노드의 부모 노드
+      console.log("parentNode:", parentNode);
+
+      if (parentNode) {
+        newData = addNodeToTree(
+          newData,
+          dragNode.props.data.type,
+          parentNode.key,
+          dropPosition
+        );
+      } else {
+        // 최상위 레벨에서의 이동
+        const insertIndex =
+          dropPosition > 0 ? dropPosition : newData.length + dropPosition;
+        newData.splice(insertIndex, 0, dragNode.props.data);
+      }
+    }
+
+    // 로컬 상태를 업데이트해서 화면에 변경사항을 반영
+    setItems(newData);
+  };
+
   const treeData = treeDataItem(items);
 
   return (
@@ -222,12 +264,16 @@ const FileDirectory: React.FC = () => {
           <FileOutlined /> +
         </AddButton>
       </ButtonContainer>
+
       <TreeFile
         multiple
         defaultExpandAll
+        draggable
+        onDrop={handleDrop}
         onRightClick={(info) => handleRightClick(info.event, info.node.key)}
         treeData={treeData}
       />
+
       {contextMenuPos && (
         <RightClickMenu
           ref={contextMenuRef}
