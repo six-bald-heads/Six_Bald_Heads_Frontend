@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
-
+                localStorage.setItem('nickname', response.data.data.nickname);
                 localStorage.setItem('accessToken', response.data.data.accessToken);
                 localStorage.setItem('refreshToken', response.data.data.refreshToken);
 

@@ -10,7 +10,8 @@ interface ProfileModalProps {
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
-    const [nickname, setNickname] = useState('');
+    const initialNickname = localStorage.getItem('nickname') || '';
+    const [currentNickname, setCurrentNickname] = useState(initialNickname);
     const [password, setPassword] = useState('');
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -74,8 +75,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
                         <Input
                             type="text"
                             placeholder="닉네임 변경"
-                            value={nickname}
-                            onChange={(e) => setNickname(e.target.value)}
+                            value={currentNickname}
+                            onChange={(e) => setCurrentNickname(e.target.value)}
                         />
                         <Button onClick={handleNicknameChange}>닉네임 변경</Button>
                     </ModifyWrapper>
@@ -91,7 +92,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
                     <Button onClick={handleLogout}>로그아웃</Button>
                     <WithdrawButton onClick={handleDeleteAccount}>회원탈퇴</WithdrawButton>
                 </ProfileContainer>
-
             </ModalContainer>
         </ModalWrapper>
     );
@@ -147,7 +147,7 @@ const CloseButton = styled.button`
   color: #141617;
   left: 20px;
 
-  &:active {
+  &:focus {
     outline: none;
     border: none;
   }
@@ -169,9 +169,19 @@ const UploadButton = styled.button`
   outline: none;
   cursor: pointer;
 
+  &:focus {
+    outline: none;
+  }
+
   &:active {
     outline: none;
     border: none;
+  }
+
+  &:hover {
+    box-shadow: 0 0 0 3px #6D9AE3;
+    transition: box-shadow 0.2s;
+
   }
 `;
 
@@ -205,10 +215,11 @@ const Button = styled.button`
   background-color: #303336;
   color: white;
   cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
 
-  &:active {
+  &:focus {
     outline: none;
-    border: none;
   }
 
   &:hover {
@@ -222,10 +233,10 @@ const WithdrawButton = styled.button`
   outline: none;
   cursor: pointer;
   color: #646060;
+  transition: color 0.2s;
 
-  &:active {
+  &:focus {
     outline: none;
-    border: none;
   }
 
   &:hover {

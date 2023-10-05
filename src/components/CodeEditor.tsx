@@ -69,9 +69,8 @@ const CodeEditor: React.FC = () => {
                     <option value="20">20px</option>
                 </FontSizeSelector>
                 <SaveButton onClick={handleSave}>저장</SaveButton>
-                <Button onClick={handleOpenModal}>프로필</Button>
+                <ProfileButton onClick={handleOpenModal}>프로필</ProfileButton>
                 {isModalOpen && <ProfileModal setIsModalOpen={setIsModalOpen} />}
-
             </TopBar>
             <EditorWrapper fontSize={fontSize}>
                 <CodeMirror
@@ -125,6 +124,7 @@ const SaveButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #ced0d9;
@@ -135,7 +135,7 @@ const SaveButton = styled.button`
   }
 `;
 
-const Button = styled.button`
+const ProfileButton = styled.button`
   padding: 5px 10px;
   margin-left: 10px;
   background-color: #6d9ae3;
@@ -144,6 +144,7 @@ const Button = styled.button`
   border-radius: 5px;
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #ced0d9;
@@ -153,8 +154,6 @@ const Button = styled.button`
     outline: none;
   }
 `;
-
-
 
 const EditorWrapper = styled.div<{ fontSize: number }>`
   height: calc(100% - 50px);

@@ -137,7 +137,7 @@ const SendButton = styled.button<ButtonProps>`
   background-color: #6D9AE3;
   color: white;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 
   ${(props) => props.isDisabled && DisabledButtonStyle}
 
@@ -157,7 +157,7 @@ const CloseButton = styled.button`
   background-color: transparent;
   color: #6D9AE3;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 
   &:focus {
     outline: none;
