@@ -58,7 +58,7 @@ const FileDirectory: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleOutsideClick = (e) => {
+    const handleOutsideClick = (e: MouseEvent) => {
       if (
         contextMenuRef.current &&
         !contextMenuRef.current.contains(e.target as Node)
@@ -77,7 +77,7 @@ const FileDirectory: React.FC = () => {
   }, [contextMenuRef, contextMenuPos]);
 
   //오른쪽 클릭 시 콘텍스트 메뉴 위치와 키 설정
-  const handleRightClick = (e, key) => {
+  const handleRightClick = (e: React.MouseEvent, key: string) => {
     e.preventDefault();
     if (key.startsWith("folder-") || key.startsWith("file-")) {
       setContextMenuPos({ x: e.clientX, y: e.clientY });
@@ -131,8 +131,15 @@ const FileDirectory: React.FC = () => {
     }
   };
 
+  type TreeData = {
+    key: string;
+    title: React.ReactNode;
+    icon: React.ReactElement;
+    children?: TreeData[];
+  };
+
   //입력받은 아이템 배열 트리 형식으로 변환
-  const treeDataItem = (inputItems: Item[]) => {
+  const treeDataItem = (inputItems: Item[]): TreeData[] => {
     return inputItems.map((item) => ({
       key: item.key,
       title:
@@ -180,11 +187,11 @@ const FileDirectory: React.FC = () => {
           item.title
         ),
       icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
-      children: item.children ? treeDataItem(item.children) : [],
+      children: item.children ? treeDataItem(item.children) : undefined,
     }));
   };
 
-  const handleRenameStart = (key) => {
+  const handleRenameStart = (key: string) => {
     setEditingKey(key);
     setContextMenuPos(null); //콘텍스트 메뉴 숨기기
   };
@@ -210,27 +217,32 @@ const FileDirectory: React.FC = () => {
     setItems((prevItems) => deleteItemFromParent(prevItems, key));
   };
 
-  const handleDrop = (info) => {
+  type DropInfo = {
+    dragNode: any;
+    dragNodesKeys: any[];
+    node: any;
+    dropPosition: number;
+    dropToGap: boolean;
+  };
+
+  const handleDrop = (info: DropInfo) => {
     const { dragNode, node, dropPosition } = info;
 
-    console.log("dropPosition:", dropPosition);
-    console.log("dragNode:", dragNode);
-    console.log("dragNode.props:", dragNode.props);
-    console.log("dragNode.data:", dragNode.data);
-    console.log("node:", node);
-    console.log("node.props:", node.props);
-    console.log("node.data:", node.data);
+    console.log(dragNode.props);
 
     // 원래의 트리에서 드래그한 노드 삭제
     let newData = findAndRemove(items, dragNode.key);
 
-    if (dragNode.props.data.type === "folder" || dropPosition === 1) {
+    if (
+      dragNode.props.data.type === "file" &&
+      node.props.data.type === "folder"
+    ) {
+      newData = addNodeToTree;
+    } else if (dragNode.props.data.type === "folder" || dropPosition === 1) {
       // 드롭하는 노드가 폴더거나, 노드 바로 아래로 드롭하는 경우
       newData = addNodeToTree(newData, dragNode.props.data, node.key, 0);
     } else {
-      console.log("dragNode.props.data.type:", dragNode.props.data.type);
       const parentNode = findParent(newData, node.key); // 드롭하는 노드의 부모 노드
-      console.log("parentNode:", parentNode);
 
       if (parentNode) {
         newData = addNodeToTree(
