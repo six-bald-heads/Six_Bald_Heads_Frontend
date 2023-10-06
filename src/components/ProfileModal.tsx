@@ -1,16 +1,25 @@
 import React, {useState} from 'react';
 import { useAuth } from "../hooks/useAuth.ts"
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 import {CloseOutlined, EditOutlined} from "@ant-design/icons";
 import axios, {AxiosError} from "axios";
+
+const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
+const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
 
 interface ProfileModalProps {
     setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+type ButtonProps = {
+    isDisabled: boolean;
+};
+
 const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
-    const initialNickname = localStorage.getItem('nickname') || '';
+    const [initialNickname, setInitialNickname] = useState(localStorage.getItem('nickname') || '');
+    const [nicknameValidationError, setNicknameValidationError] = useState<string | null>(null);
+    const [nicknameValid, setNicknameValid] = useState<boolean>(false);
     const [currentNickname, setCurrentNickname] = useState(initialNickname);
     const [password, setPassword] = useState('');
     const { logout } = useAuth();
@@ -20,8 +29,50 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
         setIsModalOpen(false);
     };
 
-    const handleNicknameChange = () => {
-        // 닉네임 변경 로직
+    const validateNickname = (nickname: string) => {
+        if (nickname === '') {
+            setNicknameValidationError(null);
+            setNicknameValid(false);
+        } else if (!nicknameRegex.test(nickname)) {
+            setNicknameValidationError('닉네임은 4~10자의 영문자, 숫자, 한글(음절)로 구성되어야 합니다.');
+            setNicknameValid(false);
+        } else if (nickname === initialNickname) {
+            setNicknameValidationError('기존 닉네임과 동일합니다.');
+            setNicknameValid(false);
+        } else {
+            setNicknameValidationError(null);
+            setNicknameValid(true);
+        }
+    };
+
+    const handleNicknameChange = async () => {
+        const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile/nickname';
+        const data = {
+            currentNickname,
+            nicknameValid
+        };
+
+        try {
+            const response = await axios.post(url, data);
+            if (response.status === 200) {
+                localStorage.setItem('nickname', currentNickname);
+                setInitialNickname(currentNickname);
+                console.log('닉네임 변경 성공! : ', response.data);
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                } else {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
+                }
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', error);
+            }
+        }
     };
 
     const handlePasswordChange = () => {
@@ -76,10 +127,20 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ setIsModalOpen }) => {
                             type="text"
                             placeholder="닉네임 변경"
                             value={currentNickname}
-                            onChange={(e) => setCurrentNickname(e.target.value)}
+                            onChange={(e) => {
+                                setCurrentNickname(e.target.value);
+                                validateNickname(e.target.value);
+                            }}
                         />
-                        <Button onClick={handleNicknameChange}>닉네임 변경</Button>
+                        <NicknameButton
+                            onClick={handleNicknameChange}
+                            isDisabled={!!nicknameValidationError || currentNickname === initialNickname}
+                            disabled={!!nicknameValidationError || currentNickname === initialNickname}
+                        >
+                            닉네임 변경
+                        </NicknameButton>
                     </ModifyWrapper>
+                    {nicknameValidationError && <ErrorText>{nicknameValidationError}</ErrorText>}
                     <ModifyWrapper>
                         <Input
                             type="password"
@@ -127,7 +188,7 @@ const ProfileContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 `;
 
 const ModalHeader = styled.div`
@@ -162,6 +223,7 @@ const UploadButton = styled.button`
   height: 50px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.7);
+  color: #141617;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -208,6 +270,26 @@ const Input = styled.input`
   }
 `;
 
+const NicknameButton = styled.button<ButtonProps>`
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #303336;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  ${props => props.isDisabled && DisabledButtonStyle}
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    background-color: #6d9ae3;
+  }
+`;
+
 const Button = styled.button`
   padding: 10px;
   border: none;
@@ -243,5 +325,17 @@ const WithdrawButton = styled.button`
     color: #6d9ae3;
   }
 `;
+
+const ErrorText = styled.span`
+  color: red;
+  font-size: 12px;
+  margin-top: -5px;
+`;
+
+const DisabledButtonStyle = css`
+  background-color: #CED0D9;
+  cursor: not-allowed;
+`;
+
 
 export default ProfileModal;
