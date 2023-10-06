@@ -274,7 +274,7 @@ const NicknameButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: #303336;
+  background-color: ${props => props.isDisabled ? '#CED0D9' : '#303336'};
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -286,7 +286,7 @@ const NicknameButton = styled.button<ButtonProps>`
   }
 
   &:hover {
-    background-color: #6d9ae3;
+    background-color: ${props => props.isDisabled ? 'transparent' : '#6d9ae3'};
   }
 `;
 
