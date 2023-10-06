@@ -10,12 +10,15 @@ import {
   GlobalStyle,
 } from "./styles/FileDirectoryStyles";
 import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faJsSquare } from "@fortawesome/free-brands-svg-icons";
 
 const FileDirectory: React.FC = () => {
   type Item = {
     key: string;
     type: "folder" | "file";
     title: string;
+    isJsFile?: boolean;
     children?: Item[];
   };
 
@@ -28,35 +31,37 @@ const FileDirectory: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
-  const MyComponent = () => {
-    const [data, setData] = useState(null);
 
-    useEffect(() => {
-      fetchFileTree()
-        .then((response) => {
-          setData(response.data);
-        })
-        .catch((error) => {
-          console.error("API 요청 에러", error);
+  // const MyComponent = () => {
+  //   const [data, setData] = useState(null);
 
-          if (error.response) {
-            switch (error.response.status) {
-              case 401:
-                alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
-                break;
-              case 400:
-                alert("존재하지 않는 폴더입니다. ");
-                break;
-              default:
-                alert("알 수 없는 에러가 발생했습니다.");
-            }
-          } else {
-            alert("네트워크 에러 또는 알 수 없는 에러가 발생했습니다.");
-          }
-        });
-    }, []);
-  };
+  //   useEffect(() => {
+  //     fetchFileTree()
+  //       .then((response) => {
+  //         setData(response.data);
+  //       })
+  //       .catch((error) => {
+  //         console.error("API 요청 에러", error);
 
+  //         if (error.response) {
+  //           switch (error.response.status) {
+  //             case 401:
+  //               alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
+  //               break;
+  //             case 400:
+  //               alert("존재하지 않는 폴더입니다. ");
+  //               break;
+  //             default:
+  //               alert("알 수 없는 에러가 발생했습니다.");
+  //           }
+  //         } else {
+  //           alert("네트워크 에러 또는 알 수 없는 에러가 발생했습니다.");
+  //         }
+  //       });
+  //   }, []);
+  // };
+
+  //모달 oustside 클릭 시, 콘텍스트 메뉴 다운
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (
@@ -140,55 +145,75 @@ const FileDirectory: React.FC = () => {
 
   //입력받은 아이템 배열 트리 형식으로 변환
   const treeDataItem = (inputItems: Item[]): TreeData[] => {
-    return inputItems.map((item) => ({
-      key: item.key,
-      title:
-        editingKey === item.key ? (
-          <input
-            type="text"
-            defaultValue={item.title}
-            onBlur={(e) => {
-              // 변경된 이름을 저장하는 로직
-              if (!isSaved) {
-                const newTitle = e.target.value;
-                setItems((prevItems) => {
-                  //아이템 업데이터 함수. 아이템 트리 순회 하면서 특정 key title 변경
-                  const updateItemTitle = (item: Item[]): Item[] => {
-                    return item.map((item) => {
-                      if (item.key === editingKey) {
-                        return {
-                          ...item,
-                          title: newTitle,
-                        };
-                      }
-                      if (item.children) {
-                        return {
-                          ...item,
-                          children: updateItemTitle(item.children),
-                        };
-                      }
-                      return item;
+    return inputItems.map((item) => {
+      let IconComponent;
+
+      if (item.type === "folder") {
+        IconComponent = FolderOutlined;
+      } //파일 이름이 .js로 끝나는 경우만 아이콘 추가
+      else if (item.isJsFile) {
+        IconComponent = () => (
+          <FontAwesomeIcon icon={faJsSquare} style={{ marginRight: "25px" }} />
+        );
+      } else {
+        IconComponent = FileOutlined;
+      }
+
+      return {
+        key: item.key,
+        title: (
+          <>
+            <IconComponent style={{ marginRight: "25px" }} />
+            {editingKey === item.key ? (
+              <input
+                type="text"
+                defaultValue={item.title}
+                onBlur={(e) => {
+                  // 변경된 이름을 저장하는 로직
+                  if (!isSaved) {
+                    const newTitle = e.target.value;
+                    setItems((prevItems) => {
+                      // 아이템 업데이트 함수. 아이템 트리 순회하면서 특정 key title 변경
+                      const updateItemTitle = (items: Item[]): Item[] => {
+                        return items.map((item) => {
+                          if (item.key === editingKey) {
+                            return {
+                              ...item,
+                              title: newTitle,
+                              isJsFile: newTitle.endsWith(".js"),
+                            };
+                          }
+                          if (item.children) {
+                            return {
+                              ...item,
+                              children: updateItemTitle(item.children),
+                            };
+                          }
+                          return item;
+                        });
+                      };
+                      return updateItemTitle(prevItems);
                     });
-                  };
-                  return updateItemTitle(prevItems);
-                });
-              }
-              setEditingKey(null);
-              setIsSaved(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setIsSaved(true);
-                (e.target as HTMLInputElement).blur();
-              }
-            }}
-          />
-        ) : (
-          item.title
+                  }
+                  setEditingKey(null);
+                  setIsSaved(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setIsSaved(true);
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+              />
+            ) : (
+              item.title
+            )}
+          </>
         ),
-      icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
-      children: item.children ? treeDataItem(item.children) : undefined,
-    }));
+        icon: <span />,
+        children: item.children ? treeDataItem(item.children) : undefined,
+      };
+    });
   };
 
   const handleRenameStart = (key: string) => {
@@ -220,8 +245,6 @@ const FileDirectory: React.FC = () => {
   const handleDrop = (info) => {
     const { dragNode, node, dropPosition } = info;
 
-    console.log(dragNode.props);
-
     // 원래의 트리에서 드래그한 노드 삭제
     let newData = findAndRemove(items, dragNode.key);
 
@@ -229,7 +252,7 @@ const FileDirectory: React.FC = () => {
       dragNode.props.data.type === "file" &&
       node.props.data.type === "folder"
     ) {
-      newData = addNodeToTree;
+      newData = addNodeToTree(newData, dragNode.props.data, node.key, -1);
     } else if (dragNode.props.data.type === "folder" || dropPosition === 1) {
       // 드롭하는 노드가 폴더거나, 노드 바로 아래로 드롭하는 경우
       newData = addNodeToTree(newData, dragNode.props.data, node.key, 0);
