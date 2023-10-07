@@ -21,12 +21,12 @@ type ButtonProps = {
 const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
     const [initialNickname, setInitialNickname] = useState(localStorage.getItem('nickname') || '');
     const [currentNickname, setCurrentNickname] = useState(initialNickname);
+    const [password, setPassword] = useState('');
 
     const [nicknameValidationError, setNicknameValidationError] = useState<string | null>(null);
     const [nicknameValid, setNicknameValid] = useState<boolean>(false);
-    const [isNicknameVerified, setIsNicknameVerified] = useState(false);
 
-    const [password, setPassword] = useState('');
+    const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
 
     const {logout} = useAuth();
     const navigate = useNavigate();
@@ -64,7 +64,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                 console.log('닉네임 중복 확인 성공! : ', data);
                 console.log(response);
                 setNicknameValid(true);
-                setIsNicknameVerified(true);
             } else if (response.status === 400) {
                 console.log("중복된 닉네임입니다.");
                 setNicknameValid(false);
@@ -116,6 +115,49 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                 setInitialNickname(currentNickname);
                 console.log('요청: ', data);
                 console.log('응답: ', response);
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                } else {
+                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
+                }
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! : ', error);
+            }
+        }
+    }
+
+    const validatePassword = (password: string) => {
+        if (password === '') {
+            setPasswordValidationError(null);
+        } else if (!passwordRegex.test(password)) {
+            setPasswordValidationError('비밀번호는 8~12자의 영문 소문자와 숫자로 구성되어야 합니다.');
+        } else {
+            setPasswordValidationError(null);
+        }
+    };
+
+    const handlePasswordChange = async () => {
+        const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/password';
+        const data = {
+            password
+        };
+
+        const accessToken = localStorage.getItem('accessToken');
+
+        try {
+            const response = await axios.post(url, data, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            if (response.status === 200) {
+                console.log('비밀번호 변경 성공!');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -204,15 +246,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                             value={password}
                             onChange={(e) => {
                                 setPassword(e.target.value);
+                                validatePassword(e.target.value);
                             }}
                         />
-                        <Button>
+                        <PasswordButton
+                            onClick={handlePasswordChange}
+                            $isDisabled={!!passwordValidationError || !password}
+                            disabled={!!passwordValidationError || !password}>
                             비밀번호 변경
-                        </Button>
+                        </PasswordButton>
                     </ModifyWrapper>
+                    {passwordValidationError && <ErrorText>{passwordValidationError}</ErrorText>}
                     <Button onClick={handleLogout}>로그아웃</Button>
                     <DeleteAccountButton onClick={handleOpenModal}>회원탈퇴</DeleteAccountButton>
-                    {isDeleteAccountModalOpen && <DeleteAccountModal setIsDeleteAccountModalOpen={setIsDeleteAccountModalOpen} />}
                 </ProfileContainer>
             </ModalContainer>
         </ModalWrapper>
@@ -349,11 +395,6 @@ const NicknameButton = styled.button<ButtonProps>`
   &:hover {
     background-color: ${props => props.$isDisabled ? 'transparent' : '#6d9ae3'};
   }
-`;
-
-const PasswordSection = styled.div`
-  display: flex;
-  gap: 10px;
 `;
 
 const PasswordButton = styled.button<ButtonProps>`

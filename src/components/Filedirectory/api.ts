@@ -1,5 +1,3 @@
-//api
-
 import axios from "axios";
 
 const BASE_URL =
@@ -10,3 +8,4 @@ axios.defaults.baseURL = BASE_URL;
 export const fetchFileTree = () => {
   return axios.get("/api/v1/file-tree?path=/src");
 };
+
