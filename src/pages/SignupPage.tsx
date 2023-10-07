@@ -144,7 +144,11 @@ const SignupPage: React.FC = () => {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
                 if (axiosError.response) {
-                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                    if (axiosError.response.status === 400) {
+                        console.log("중복된 닉네임입니다.");
+                    } else {
+                        console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                    }
                 } else {
                     console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
                 }
@@ -405,6 +409,7 @@ const InputContainerWrapper = styled.div`
 const Title = styled.h1`
   color: #CED0D9;
   font-size: clamp(36px, 6vw, 50px);
+  margin: 0;
 `;
 
 const EmailSection = styled.div`
@@ -536,17 +541,18 @@ const Button = styled.button<ButtonProps>`
   }
 `;
 
-const PlainText = styled.span`
+const PlainText = styled.p`
   color: #6D9AE3;
   font-size: 15px;
   margin-bottom: -5px;
   font-weight: bold;
 `;
 
-const ErrorText = styled.span`
+const ErrorText = styled.p`
   color: red;
   font-size: 12px;
   margin-top: -5px;
+  margin-bottom: 0;
 `;
 
 const DisabledButtonStyle = css`

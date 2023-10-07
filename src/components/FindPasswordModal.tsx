@@ -169,7 +169,7 @@ const CloseButton = styled.button`
   }
 `;
 
-const ErrorText = styled.span`
+const ErrorText = styled.p`
     color: red;
     font-size: 12px;
     margin-top: -5px;
