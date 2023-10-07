@@ -173,6 +173,7 @@ const ErrorText = styled.p`
     color: red;
     font-size: 12px;
     margin-top: -5px;
+  margin-bottom: 0;
 `;
 
 

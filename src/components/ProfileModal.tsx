@@ -14,13 +14,15 @@ interface ProfileModalProps {
 }
 
 type ButtonProps = {
-    isDisabled: boolean;
+    $isDisabled: boolean;
 };
+
 
 const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
     const [initialNickname, setInitialNickname] = useState(localStorage.getItem('nickname') || '');
     const [currentNickname, setCurrentNickname] = useState(initialNickname);
 
+    const [nicknameValidationError, setNicknameValidationError] = useState<string | null>(null);
     const [nicknameValid, setNicknameValid] = useState<boolean>(false);
     const [isNicknameVerified, setIsNicknameVerified] = useState(false);
 
@@ -32,6 +34,22 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
     const handleClose = () => {
         setIsModalOpen(false);
     };
+
+    const validateNickname = (nickname: string) => {
+        if (nickname === '') {
+            setNicknameValidationError(null);
+            setNicknameValid(false);
+        } else if (!nicknameRegex.test(nickname)) {
+            setNicknameValidationError('닉네임은 4~10자의 영문자, 숫자, 한글(음절)로 구성되어야 합니다.');
+            setNicknameValid(false);
+        } else if (nickname === initialNickname) {
+            setNicknameValidationError('기존 닉네임과 동일합니다.');
+            setNicknameValid(false);
+        } else {
+            setNicknameValidationError(null);
+            setNicknameValid(true);
+        }
+    }
 
     const handleCheckNickname = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/nickcheck';
@@ -167,14 +185,18 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                             value={currentNickname}
                             onChange={(e) => {
                                 setCurrentNickname(e.target.value);
+                                validateNickname(e.target.value);
                             }}
                         />
-                        <Button
+                        <NicknameButton
                             onClick={handleNicknameChange}
+                            $isDisabled={!!nicknameValidationError || currentNickname === initialNickname}
+                            disabled={!!nicknameValidationError || currentNickname === initialNickname}
                         >
                             닉네임 변경
-                        </Button>
+                        </NicknameButton>
                     </ModifyWrapper>
+                    {nicknameValidationError && <ErrorText>{nicknameValidationError}</ErrorText>}
                     <ModifyWrapper>
                         <Input
                             type="password"
@@ -313,19 +335,19 @@ const NicknameButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: ${props => props.isDisabled ? '#CED0D9' : '#303336'};
+  background-color: ${props => props.$isDisabled ? '#CED0D9' : '#303336'};
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
   white-space: nowrap;
 
-  ${props => props.isDisabled && DisabledButtonStyle}
+  ${props => props.$isDisabled && DisabledButtonStyle}
   &:focus {
     outline: none;
   }
 
   &:hover {
-    background-color: ${props => props.isDisabled ? 'transparent' : '#6d9ae3'};
+    background-color: ${props => props.$isDisabled ? 'transparent' : '#6d9ae3'};
   }
 `;
 
@@ -338,19 +360,19 @@ const PasswordButton = styled.button<ButtonProps>`
   padding: 10px;
   border: none;
   border-radius: 4px;
-  background-color: ${props => props.isDisabled ? '#CED0D9' : '#303336'};
+  background-color: ${props => props.$isDisabled ? '#CED0D9' : '#303336'};
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
   white-space: nowrap;
 
-  ${props => props.isDisabled && DisabledButtonStyle}
+  ${props => props.$isDisabled && DisabledButtonStyle}
   &:focus {
     outline: none;
   }
 
   &:hover {
-    background-color: ${props => props.isDisabled ? 'transparent' : '#6d9ae3'};
+    background-color: ${props => props.$isDisabled ? 'transparent' : '#6d9ae3'};
   }
 `;
 
@@ -394,6 +416,7 @@ const ErrorText = styled.p`
   color: red;
   font-size: 12px;
   margin-top: -5px;
+  margin-bottom: 0;
 `;
 
 const DisabledButtonStyle = css`
