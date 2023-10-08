@@ -38,22 +38,57 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
         message: string;
     }
 
+    useEffect(() => {
+        const fetchProfileImage = async () => {
+            const profileUrl = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile';
+            const accessToken = localStorage.getItem('accessToken');
+            try {
+                const profileResponse = await axios.get(profileUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (profileResponse.status === 200) {
+                    const imageUrl = profileResponse.data.data.imageUrl;
+                    console.log('이미지 url:', imageUrl);
+                    setPreviewImage(imageUrl);
+                } else {
+                    console.error('프로필 정보를 가져오는데 실패했습니다:', profileResponse.status, profileResponse.data);
+                }
+            } catch (error) {
+                console.error('프로필 정보를 가져오는 중 에러 발생:', error);
+            }
+        };
+
+        fetchProfileImage();
+    }, []);
+
+
+
     const handleClose = () => {
         setIsModalOpen(false);
     };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleUploadButtonClick = () => {
+    const handleUploadButtonClick = (event?: React.MouseEvent) => {
+        console.log("Upload button clicked!");
+        event?.preventDefault();
         fileInputRef.current?.click();
     };
 
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
     const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("Image selected!");
+        event?.preventDefault();
+        console.log("이미지타겟파일: " + event.target.files);
         if (event.target.files && event.target.files[0]) {
+            console.log("첫번째인덱스: " + event.target.files[0]);
             setSelectedImage(event.target.files[0]);
-            await handleUploadImage();
+
+            await handleUploadImage(event.target.files[0]);
         }
     };
 
@@ -68,13 +103,16 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
         }
     }, [selectedImage]);
 
-    const handleUploadImage = async () => {
-        if (!selectedImage) return;
+    const handleUploadImage = async (imageFile: File) => {
+        console.log("Image selected!");
+        console.log(imageFile);
+        if (!imageFile) return;
 
-        const uploadUrl = 'UPLOAD_URL_HERE';
+        const uploadUrl = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile/image';
+        const profileUrl = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile';
 
         const formData = new FormData();
-        formData.append('image', selectedImage);
+        formData.append('imageUrl', imageFile);
 
         const accessToken = localStorage.getItem('accessToken');
 
@@ -88,26 +126,24 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
 
             if (uploadResponse.status === 200) {
                 console.log('이미지 업로드 성공:', uploadResponse.data);
-                const imageUrl = uploadResponse.data.imageUrl; // 서버에서 반환하는 실제 이미지 URL
-                setPreviewImage(imageUrl);
 
-                // 이미지 URL 을 사용하여 추가 요청 보내기
-                const data = {
-                    imageUrl: imageUrl
-                };
-                const updateUrl = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile/image';
-                const updateResponse = await axios.put(updateUrl, data, {
+                // 이미지 업로드 성공 후 프로필 정보를 가져옵니다.
+                const profileResponse = await axios.get(profileUrl, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     }
                 });
 
-                if (updateResponse.status === 200) {
-                    console.log('이미지 URL 업데이트 성공:', updateResponse.data);
-                } else {
-                    console.error('이미지 URL 업데이트 실패:', updateResponse.status, updateResponse.data);
-                }
+                if (profileResponse.status === 200) {
+                    const imageUrl = profileResponse.data.data.imageUrl;
+                    console.log('이미지 url:', imageUrl);
+                    setPreviewImage(imageUrl);
 
+                    displaySnackbar('프로필 사진을 변경했어요!', 'success');
+
+                } else {
+                    console.error('프로필 정보를 가져오는데 실패했습니다:', profileResponse.status, profileResponse.data);
+                }
             } else {
                 console.error('예상치 못한 문제가 발생했어요! :', uploadResponse.status, uploadResponse.data);
             }
@@ -316,8 +352,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                 <ProfileContainer>
                     <ImgContainer>
                         <ProfileImg src={previewImage || '/src/assets/logo-square.png'} alt="Profile Preview"/>
-                        <UploadButton onClick={handleUploadButtonClick}>
-                            <EditOutlined/>
+                        <UploadButton onMouseDown={(e) => handleUploadButtonClick(e)}>
+                        <EditOutlined/>
                             <input
                                 ref={fileInputRef}
                                 type="file"
