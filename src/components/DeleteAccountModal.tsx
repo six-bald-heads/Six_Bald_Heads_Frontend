@@ -2,6 +2,10 @@ import React from 'react';
 import styled from 'styled-components';
 import axios, { AxiosError } from 'axios';
 import {CloseOutlined} from "@ant-design/icons";
+import {useNavigate} from 'react-router-dom';
+
+import { useSnackbar } from '../hooks/useSnackbar';
+
 
 interface DeleteAccountModalProps {
     setIsDeleteAccountModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -9,6 +13,8 @@ interface DeleteAccountModalProps {
 
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({setIsDeleteAccountModalOpen}) => {
+    const { displaySnackbar } = useSnackbar();
+    const navigate = useNavigate();
 
     const handleClose = () => {
         setIsDeleteAccountModalOpen(false);
@@ -28,6 +34,10 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({setIsDeleteAccou
             if (response.status === 200) {
                 console.log('회원탈퇴 완료! ', response.data);
                 console.log(response);
+
+                displaySnackbar("계정이 삭제되었습니다. 또 만나요! ", 'info');
+
+                navigate('/login');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }

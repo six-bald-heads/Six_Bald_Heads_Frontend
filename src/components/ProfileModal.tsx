@@ -5,6 +5,8 @@ import styled, {css} from 'styled-components';
 import {CloseOutlined, EditOutlined} from "@ant-design/icons";
 import axios, {AxiosError} from "axios";
 import DeleteAccountModal from "./DeleteAccountModal.tsx";
+import { useSnackbar } from '../hooks/useSnackbar';
+
 
 const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
 const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[0-9]).{8,12}$');
@@ -29,7 +31,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
     const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
 
     const {logout} = useAuth();
+    const { displaySnackbar } = useSnackbar();
     const navigate = useNavigate();
+
+    interface ErrorResponse {
+        message: string;
+    }
 
     const handleClose = () => {
         setIsModalOpen(false);
@@ -147,6 +154,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                 console.log('닉네임 중복 확인 성공! : ', data);
                 console.log(response);
                 setNicknameValid(true);
+
+                displaySnackbar('닉네임을 변경했어요!', 'success');
             } else if (response.status === 400) {
                 console.log("중복된 닉네임입니다.");
                 setNicknameValid(false);
@@ -247,8 +256,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                if (axiosError.response) {
-                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                if (axiosError.response && axiosError.response.status === 401) {
+                    const errorResponse = axiosError.response.data as ErrorResponse;
+                    console.error('기존 비밀번호와 일치합니다. : ', errorResponse.message);
+
+                    displaySnackbar('기존 비밀번호와 일치합니다.', 'error');
                 } else {
                     console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
                 }
@@ -267,6 +279,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
             if (response.status === 200) {
                 console.log('로그아웃 성공! : ', response.data);
                 logout();
+
+                displaySnackbar("로그아웃 되었습니다.", 'success');
                 navigate('/login');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
@@ -325,8 +339,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                         />
                         <NicknameButton
                             onClick={handleNicknameChange}
-                            $isDisabled={!!nicknameValidationError || currentNickname === initialNickname}
-                            disabled={!!nicknameValidationError || currentNickname === initialNickname}
+                            $isDisabled={!!nicknameValidationError || currentNickname === initialNickname || !currentNickname}
+                            disabled={!!nicknameValidationError || currentNickname === initialNickname || !currentNickname}
                         >
                             닉네임 변경
                         </NicknameButton>

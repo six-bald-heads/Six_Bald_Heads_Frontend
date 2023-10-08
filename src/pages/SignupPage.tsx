@@ -6,6 +6,9 @@ import logo from "../assets/logo.png";
 import logofill from '../assets/logo-fill.png'
 import backgroundImage from "../assets/bg-login.jpeg";
 
+import { useSnackbar } from '../hooks/useSnackbar';
+
+
 const emailRegex = new RegExp(
     '^[\\w!#$%&\'+/=?`{|}~^-]+(?:\\.[\\w!#$%&\'+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$'
 );
@@ -36,25 +39,31 @@ const SignupPage: React.FC = () => {
     const [nicknameValid, setNicknameValid] = useState<boolean | null>(null);
     const [isNicknameVerified, setIsNicknameVerified] = useState(false);
 
-
     const isEmailInvalid = !email || emailError !== null;
     const isNicknameInvalid = !nickname || nicknameError !== null;
     const isPasswordMismatch = password !== confirmPassword;
     const isFormIncomplete = !email || !nickname || !password || !confirmPassword;
 
+    const { displaySnackbar } = useSnackbar();
+
     const navigate = useNavigate();
+
+    interface ErrorResponse {
+        message: string;
+    }
 
     const handleSendVerificationCode = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/sendmail';
         const data = {
             email
         };
-
         try {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('인증번호 전송 성공! : ', response.data);
                 console.log(response);
+
+                displaySnackbar('입력한 이메일로 인증번호를 전송했어요!', 'success');
                 setCountdown(5 * 60);
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
@@ -62,9 +71,12 @@ const SignupPage: React.FC = () => {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                if (axiosError.response) {
-                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
-                } else {
+                if (axiosError.response && axiosError.response.status === 400) {
+                    const errorResponse = axiosError.response.data as ErrorResponse;
+                    console.error('이미 가입된 이메일입니다. : ', errorResponse.message);
+
+                    displaySnackbar('이미 가입된 이메일입니다.', 'error');
+                }  else {
                     console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
                 }
             } else {
@@ -107,14 +119,19 @@ const SignupPage: React.FC = () => {
                 setCountdown(null);
                 setEmailValid(true);
                 setIsEmailVerified(true);
+
+                displaySnackbar('사용 가능한 이메일입니다.', 'success');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                if (axiosError.response) {
-                    console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
+                if (axiosError.response && axiosError.response.status === 400) {
+                    const errorResponse = axiosError.response.data as ErrorResponse;
+                    console.error('인증코드가 일치하지 않습니다. : ', errorResponse.message);
+
+                    displaySnackbar('인증코드가 일치하지 않습니다.', 'error');
                 } else {
                     console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.message);
                 }
@@ -137,6 +154,8 @@ const SignupPage: React.FC = () => {
                 console.log(response);
                 setNicknameValid(true);
                 setIsNicknameVerified(true);
+
+                displaySnackbar('사용 가능한 닉네임입니다.', 'success');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -146,6 +165,8 @@ const SignupPage: React.FC = () => {
                 if (axiosError.response) {
                     if (axiosError.response.status === 400) {
                         console.log("중복된 닉네임입니다.");
+
+                        displaySnackbar('이미 사용 중인 닉네임입니다.', 'error');
                     } else {
                         console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
                     }
@@ -219,6 +240,7 @@ const SignupPage: React.FC = () => {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('회원가입 성공! : ', response.data);
+                displaySnackbar('회원가입이 완료되었습니다!', 'success');
                 navigate('/login');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);

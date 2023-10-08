@@ -30,7 +30,7 @@ const SnackbarContainer = styled.div<{ $showSnackbar: boolean }>`
   padding: 0.625em;
   color: white;
   border-radius: 0.625em;
-  background-color: rgba(114, 168, 255);
+  background-color: #6D9AE3;
   opacity: 0;
   visibility: hidden;
   transition: visibility 0s 0.5s, opacity 0.5s ease-in-out;

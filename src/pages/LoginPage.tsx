@@ -51,7 +51,7 @@ const LoginPage: React.FC = () => {
                 localStorage.setItem('refreshToken', response.data.data.refreshToken);
 
                 login();
-
+                displaySnackbar(response.data.data.nickname + " 님, 반갑습니다!", 'success');
                 navigate('/');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
