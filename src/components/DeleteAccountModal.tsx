@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import styled, {css} from 'styled-components';
+import React from 'react';
+import styled from 'styled-components';
 import axios, { AxiosError } from 'axios';
 import {CloseOutlined} from "@ant-design/icons";
 
@@ -17,8 +17,14 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({setIsDeleteAccou
     const handleDeleteAccount = async () => {
         const url = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile';
 
+        const accessToken = localStorage.getItem('accessToken');
+
         try {
-            const response = await axios.delete(url);
+            const response = await axios.delete(url, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
             if (response.status === 200) {
                 console.log('회원탈퇴 완료! ', response.data);
                 console.log(response);
