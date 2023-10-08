@@ -1,25 +1,37 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
 import RightClickMenu from "./RightClickMenu";
-import { fetchFileTree } from "./api";
 import {
   DirectoryContainer,
   ButtonContainer,
   AddButton,
   TreeFile,
   GlobalStyle,
-} from "./styles/FileDirectoryStyles";
+} from "./styles/DirectoryStyle";
 import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faJsSquare } from "@fortawesome/free-brands-svg-icons";
 
-const FileDirectory: React.FC = () => {
+type FileDirectoryProps = {
+  setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
+};
+
+const FileDirectory: React.FC<FileDirectoryProps> = ({
+  setSelectedFileContent,
+}) => {
   type Item = {
     key: string;
     type: "folder" | "file";
     title: string;
-    isJsFile?: boolean;
     children?: Item[];
+    icon: React.ReactElement;
+  };
+
+  type TreeData = {
+    key: string;
+    title: React.ReactNode;
+    icon: React.ReactElement;
+    children?: TreeData[];
   };
 
   const [items, setItems] = useState<Item[]>([]);
@@ -31,37 +43,8 @@ const FileDirectory: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const [selectedFileKey, setSelectedFileKey] = useState<string | null>(null);
 
-  // const MyComponent = () => {
-  //   const [data, setData] = useState(null);
-
-  //   useEffect(() => {
-  //     fetchFileTree()
-  //       .then((response) => {
-  //         setData(response.data);
-  //       })
-  //       .catch((error) => {
-  //         console.error("API 요청 에러", error);
-
-  //         if (error.response) {
-  //           switch (error.response.status) {
-  //             case 401:
-  //               alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
-  //               break;
-  //             case 400:
-  //               alert("존재하지 않는 폴더입니다. ");
-  //               break;
-  //             default:
-  //               alert("알 수 없는 에러가 발생했습니다.");
-  //           }
-  //         } else {
-  //           alert("네트워크 에러 또는 알 수 없는 에러가 발생했습니다.");
-  //         }
-  //       });
-  //   }, []);
-  // };
-
-  //모달 oustside 클릭 시, 콘텍스트 메뉴 다운
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (
@@ -123,8 +106,14 @@ const FileDirectory: React.FC = () => {
     const newItem: Item = {
       key: `${itemType}-${Date.now()}`,
       type: itemType,
-      title: itemType === "folder" ? "새 폴더" : "새 파일",
+      title: itemType === "folder" ? "새 폴더" : "새 파일.js",
       children: itemType === "folder" ? [] : undefined,
+      icon:
+        itemType === "folder" ? (
+          <FolderOutlined style={{ marginRight: "25px" }} />
+        ) : (
+          <FontAwesomeIcon icon={faJsSquare} style={{ marginRight: "25px" }} />
+        ),
     };
 
     if (parentKey === null) {
@@ -136,84 +125,57 @@ const FileDirectory: React.FC = () => {
     }
   };
 
-  type TreeData = {
-    key: string;
-    title: React.ReactNode;
-    icon: React.ReactElement;
-    children?: TreeData[];
-  };
-
   //입력받은 아이템 배열 트리 형식으로 변환
   const treeDataItem = (inputItems: Item[]): TreeData[] => {
-    return inputItems.map((item) => {
-      let IconComponent;
-
-      if (item.type === "folder") {
-        IconComponent = FolderOutlined;
-      } //파일 이름이 .js로 끝나는 경우만 아이콘 추가
-      else if (item.isJsFile) {
-        IconComponent = () => (
-          <FontAwesomeIcon icon={faJsSquare} style={{ marginRight: "25px" }} />
-        );
-      } else {
-        IconComponent = FileOutlined;
-      }
-
-      return {
-        key: item.key,
-        title: (
-          <>
-            <IconComponent style={{ marginRight: "25px" }} />
-            {editingKey === item.key ? (
-              <input
-                type="text"
-                defaultValue={item.title}
-                onBlur={(e) => {
-                  // 변경된 이름을 저장하는 로직
-                  if (!isSaved) {
-                    const newTitle = e.target.value;
-                    setItems((prevItems) => {
-                      // 아이템 업데이트 함수. 아이템 트리 순회하면서 특정 key title 변경
-                      const updateItemTitle = (items: Item[]): Item[] => {
-                        return items.map((item) => {
-                          if (item.key === editingKey) {
-                            return {
-                              ...item,
-                              title: newTitle,
-                              isJsFile: newTitle.endsWith(".js"),
-                            };
-                          }
-                          if (item.children) {
-                            return {
-                              ...item,
-                              children: updateItemTitle(item.children),
-                            };
-                          }
-                          return item;
-                        });
-                      };
-                      return updateItemTitle(prevItems);
+    return inputItems.map((item) => ({
+      key: item.key,
+      title:
+        editingKey === item.key ? (
+          <input
+            type="text"
+            defaultValue={item.title}
+            onBlur={(e) => {
+              // 변경된 이름을 저장하는 로직
+              if (!isSaved) {
+                const newTitle = e.target.value;
+                setItems((prevItems) => {
+                  //아이템 업데이터 함수. 아이템 트리 순회 하면서 특정 key title 변경
+                  const updateItemTitle = (item: Item[]): Item[] => {
+                    return item.map((item) => {
+                      if (item.key === editingKey) {
+                        return {
+                          ...item,
+                          title: newTitle,
+                        };
+                      }
+                      if (item.children) {
+                        return {
+                          ...item,
+                          children: updateItemTitle(item.children),
+                        };
+                      }
+                      return item;
                     });
-                  }
-                  setEditingKey(null);
-                  setIsSaved(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setIsSaved(true);
-                    (e.target as HTMLInputElement).blur();
-                  }
-                }}
-              />
-            ) : (
-              item.title
-            )}
-          </>
+                  };
+                  return updateItemTitle(prevItems);
+                });
+              }
+              setEditingKey(null);
+              setIsSaved(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setIsSaved(true);
+                (e.target as HTMLInputElement).blur();
+              }
+            }}
+          />
+        ) : (
+          <span>{item.title}</span>
         ),
-        icon: <span />,
-        children: item.children ? treeDataItem(item.children) : undefined,
-      };
-    });
+      icon: item.icon,
+      children: item.children ? treeDataItem(item.children) : undefined,
+    }));
   };
 
   const handleRenameStart = (key: string) => {
@@ -277,8 +239,13 @@ const FileDirectory: React.FC = () => {
     // 로컬 상태를 업데이트해서 화면에 변경사항을 반영
     setItems(newData);
   };
-
   const treeData = treeDataItem(items);
+
+  const handleFileSelect = (key: string, content: string) => {
+    setSelectedFileKey(key);
+    setSelectedFileContent(content);
+    // TODO: 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
+  };
 
   return (
     <DirectoryContainer>
@@ -299,6 +266,9 @@ const FileDirectory: React.FC = () => {
         onDrop={handleDrop}
         onRightClick={(info) => handleRightClick(info.event, info.node.key)}
         treeData={treeData}
+        onSelect={(keys, info) =>
+          handleFileSelect(info.node.key, String(info.node.title))
+        }
       />
 
       {contextMenuPos && (

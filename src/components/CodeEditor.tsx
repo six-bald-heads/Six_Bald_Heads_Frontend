@@ -4,8 +4,12 @@ import CodeMirror, { EditorView, keymap } from "@uiw/react-codemirror";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 
-const CodeEditor: React.FC = () => {
-  const [value, setValue] = useState("console.log('hello world!');");
+type Props = {
+  content: string;
+};
+
+const CodeEditor: React.FC<Props> = ({ content }) => {
+  const [value, setValue] = useState(content);
   const [fontSize, setFontSize] = useState(14);
 
   const onChange = (val: string) => {
