@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useAuth} from "../hooks/useAuth.ts"
 import {useNavigate} from 'react-router-dom';
 import styled, {css} from 'styled-components';
@@ -33,6 +33,89 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
 
     const handleClose = () => {
         setIsModalOpen(false);
+    };
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleUploadButtonClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+    const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files && event.target.files[0]) {
+            setSelectedImage(event.target.files[0]);
+            await handleUploadImage();
+        }
+    };
+
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (selectedImage) {
+            const imageUrl = URL.createObjectURL(selectedImage);
+            setPreviewImage(imageUrl);
+
+            return () => URL.revokeObjectURL(imageUrl);
+        }
+    }, [selectedImage]);
+
+    const handleUploadImage = async () => {
+        if (!selectedImage) return;
+
+        const uploadUrl = 'UPLOAD_URL_HERE';
+
+        const formData = new FormData();
+        formData.append('image', selectedImage);
+
+        const accessToken = localStorage.getItem('accessToken');
+
+        try {
+            const uploadResponse = await axios.put(uploadUrl, formData, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (uploadResponse.status === 200) {
+                console.log('이미지 업로드 성공:', uploadResponse.data);
+                const imageUrl = uploadResponse.data.imageUrl; // 서버에서 반환하는 실제 이미지 URL
+                setPreviewImage(imageUrl);
+
+                // 이미지 URL 을 사용하여 추가 요청 보내기
+                const data = {
+                    imageUrl: imageUrl
+                };
+                const updateUrl = 'http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/auth/profile/image';
+                const updateResponse = await axios.put(updateUrl, data, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (updateResponse.status === 200) {
+                    console.log('이미지 URL 업데이트 성공:', updateResponse.data);
+                } else {
+                    console.error('이미지 URL 업데이트 실패:', updateResponse.status, updateResponse.data);
+                }
+
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! :', uploadResponse.status, uploadResponse.data);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('네트워크 혹은 서버 에러입니다. :', axiosError.response.data);
+                } else {
+                    console.error('네트워크 혹은 서버 에러입니다. :', axiosError.message);
+                }
+            } else {
+                console.error('예상치 못한 문제가 발생했어요! :', error);
+            }
+        }
     };
 
     const validateNickname = (nickname: string) => {
@@ -151,7 +234,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
         const accessToken = localStorage.getItem('accessToken');
 
         try {
-            const response = await axios.post(url, data, {
+            const response = await axios.put(url, data, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 }
@@ -217,9 +300,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                     </CloseButton>
                 </ModalHeader>
                 <ProfileContainer>
-                    <UploadButton>
-                        <EditOutlined/>
-                    </UploadButton>
+                    <ImgContainer>
+                        <ProfileImg src={previewImage || '/src/assets/logo-square.png'} alt="Profile Preview"/>
+                        <UploadButton onClick={handleUploadButtonClick}>
+                            <EditOutlined/>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{display: 'none'}}
+                                onChange={handleImageChange}
+                            />
+                        </UploadButton>
+                    </ImgContainer>
                     <ModifyWrapper>
                         <Input
                             type="text"
@@ -259,6 +352,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                     {passwordValidationError && <ErrorText>{passwordValidationError}</ErrorText>}
                     <Button onClick={handleLogout}>로그아웃</Button>
                     <DeleteAccountButton onClick={handleOpenModal}>회원탈퇴</DeleteAccountButton>
+                    {isDeleteAccountModalOpen &&
+                        <DeleteAccountModal setIsDeleteAccountModalOpen={setIsDeleteAccountModalOpen}/>}
                 </ProfileContainer>
             </ModalContainer>
         </ModalWrapper>
@@ -325,7 +420,27 @@ const CloseButton = styled.button`
   }
 `;
 
+const ImgContainer = styled.div`
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const ProfileImg = styled.img`
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color:  #303336;
+`;
+
 const UploadButton = styled.button`
+  position: absolute;
+  right: -15px;
+  bottom: 0;
   width: 50px;
   height: 50px;
   border-radius: 50%;
