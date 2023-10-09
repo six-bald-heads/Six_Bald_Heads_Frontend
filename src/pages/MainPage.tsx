@@ -1,10 +1,12 @@
-import React from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import FileDirectory from "../components/Filedirectory/FileDirectory";
 import CodeEditor from "../components/CodeEditor";
 import { Resizable } from "re-resizable";
 
 const MainPage: React.FC = () => {
+  const [selectedFileContent, setSelectedFileContent] = useState<string>("");
+
   return (
     <MainContainer>
       <MainContent>
@@ -31,9 +33,9 @@ const MainPage: React.FC = () => {
             },
           }}
         >
-          <FileDirectory />
+          <FileDirectory setSelectedFileContent={setSelectedFileContent} />
         </Resizable>
-        <CodeEditor />
+        <CodeEditor content={selectedFileContent} />
       </MainContent>
     </MainContainer>
   );

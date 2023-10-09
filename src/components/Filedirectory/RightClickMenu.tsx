@@ -2,8 +2,8 @@ import styled from "styled-components";
 import React from "react";
 
 interface ContextMenuProps {
-  left: number;
-  top: number;
+  $left?: number;
+  $top?: number;
 }
 
 const ContextMenu = styled.div<ContextMenuProps>`
@@ -13,8 +13,8 @@ const ContextMenu = styled.div<ContextMenuProps>`
   z-index: 1000;
   cursor: pointer;
   font-size: 11px;
-  left: ${(props) => props.left}px;
-  top: ${(props) => props.top}px;
+  left: ${(props) => props.$left}px;
+  top: ${(props) => props.$top}px;
 `;
 
 const ContextMenuItem = styled.div`
@@ -43,7 +43,7 @@ const RightClickMenu = React.forwardRef<HTMLDivElement, Props>(
   ) => {
     if (parentKey) {
       return (
-        <ContextMenu left={x} top={y} ref={ref}>
+        <ContextMenu $left={x} $top={y} ref={ref}>
           {parentKey ? (
             parentKey.startsWith("folder-") ? (
               <>

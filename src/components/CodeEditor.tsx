@@ -5,9 +5,13 @@ import {indentWithTab} from "@codemirror/commands";
 import {javascript} from "@codemirror/lang-javascript";
 import ProfileModal from "./ProfileModal";
 
-const CodeEditor: React.FC = () => {
-    const [value, setValue] = useState("console.log('hello world!');");
-    const [fontSize, setFontSize] = useState(14);
+type Props = {
+  content: string;
+};
+
+const CodeEditor: React.FC<Props> = ({ content }) => {
+  const [value, setValue] = useState(content);
+  const [fontSize, setFontSize] = useState(14);
 
     const onChange = (val: string) => {
         setValue(val);

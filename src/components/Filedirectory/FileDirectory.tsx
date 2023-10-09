@@ -1,22 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
 import RightClickMenu from "./RightClickMenu";
-import { fetchFileTree } from "./api";
 import {
   DirectoryContainer,
   ButtonContainer,
   AddButton,
   TreeFile,
   GlobalStyle,
-} from "./styles/FileDirectoryStyles";
+} from "./styles/DirectoryStyle";
 import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faJsSquare } from "@fortawesome/free-brands-svg-icons";
+import { fetchFileContent } from "../api";
 
-const FileDirectory: React.FC = () => {
+type FileDirectoryProps = {
+  setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
+};
+
+const FileDirectory: React.FC<FileDirectoryProps> = ({
+  setSelectedFileContent,
+}) => {
   type Item = {
     key: string;
     type: "folder" | "file";
     title: string;
     children?: Item[];
+    icon: React.ReactElement;
+  };
+
+  type TreeData = {
+    key: string;
+    title: React.ReactNode;
+    icon: React.ReactElement;
+    children?: TreeData[];
   };
 
   const [items, setItems] = useState<Item[]>([]);
@@ -28,34 +44,7 @@ const FileDirectory: React.FC = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
-  const MyComponent = () => {
-    const [data, setData] = useState(null);
-
-    useEffect(() => {
-      fetchFileTree()
-        .then((response) => {
-          setData(response.data);
-        })
-        .catch((error) => {
-          console.error("API 요청 에러", error);
-
-          if (error.response) {
-            switch (error.response.status) {
-              case 401:
-                alert("토큰이 만료되었습니다. 다시 로그인해주세요.");
-                break;
-              case 400:
-                alert("존재하지 않는 폴더입니다. ");
-                break;
-              default:
-                alert("알 수 없는 에러가 발생했습니다.");
-            }
-          } else {
-            alert("네트워크 에러 또는 알 수 없는 에러가 발생했습니다.");
-          }
-        });
-    }, []);
-  };
+  const [selectedFileKey, setSelectedFileKey] = useState<string | null>(null);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -118,8 +107,14 @@ const FileDirectory: React.FC = () => {
     const newItem: Item = {
       key: `${itemType}-${Date.now()}`,
       type: itemType,
-      title: itemType === "folder" ? "새 폴더" : "새 파일",
+      title: itemType === "folder" ? "새 폴더" : "새 파일.js",
       children: itemType === "folder" ? [] : undefined,
+      icon:
+        itemType === "folder" ? (
+          <FolderOutlined style={{ marginRight: "25px" }} />
+        ) : (
+          <FontAwesomeIcon icon={faJsSquare} style={{ marginRight: "25px" }} />
+        ),
     };
 
     if (parentKey === null) {
@@ -129,13 +124,6 @@ const FileDirectory: React.FC = () => {
         addNewItemToParent(prevItems, newItem, parentKey)
       );
     }
-  };
-
-  type TreeData = {
-    key: string;
-    title: React.ReactNode;
-    icon: React.ReactElement;
-    children?: TreeData[];
   };
 
   //입력받은 아이템 배열 트리 형식으로 변환
@@ -184,9 +172,9 @@ const FileDirectory: React.FC = () => {
             }}
           />
         ) : (
-          item.title
+          <span>{item.title}</span>
         ),
-      icon: item.type === "folder" ? <FolderOutlined /> : <FileOutlined />,
+      icon: item.icon,
       children: item.children ? treeDataItem(item.children) : undefined,
     }));
   };
@@ -220,8 +208,6 @@ const FileDirectory: React.FC = () => {
   const handleDrop = (info) => {
     const { dragNode, node, dropPosition } = info;
 
-    console.log(dragNode.props);
-
     // 원래의 트리에서 드래그한 노드 삭제
     let newData = findAndRemove(items, dragNode.key);
 
@@ -229,7 +215,7 @@ const FileDirectory: React.FC = () => {
       dragNode.props.data.type === "file" &&
       node.props.data.type === "folder"
     ) {
-      newData = addNodeToTree;
+      newData = addNodeToTree(newData, dragNode.props.data, node.key, -1);
     } else if (dragNode.props.data.type === "folder" || dropPosition === 1) {
       // 드롭하는 노드가 폴더거나, 노드 바로 아래로 드롭하는 경우
       newData = addNodeToTree(newData, dragNode.props.data, node.key, 0);
@@ -254,8 +240,18 @@ const FileDirectory: React.FC = () => {
     // 로컬 상태를 업데이트해서 화면에 변경사항을 반영
     setItems(newData);
   };
-
   const treeData = treeDataItem(items);
+
+  const handleFileSelect = async (_, fileName) => {
+    const filePath = "/src/bald"; // 실제 파일 경로를 이 변수에 할당
+    const fileContent = await fetchFileContent(filePath, fileName);
+
+    if (fileContent) {
+      setSelectedFileContent(fileContent);
+    }
+
+    // TODO: 서버 연결 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
+  };
 
   return (
     <DirectoryContainer>
@@ -276,6 +272,9 @@ const FileDirectory: React.FC = () => {
         onDrop={handleDrop}
         onRightClick={(info) => handleRightClick(info.event, info.node.key)}
         treeData={treeData}
+        onSelect={(_, info) =>
+          handleFileSelect(info.node.key, String(info.node.title))
+        }
       />
 
       {contextMenuPos && (
