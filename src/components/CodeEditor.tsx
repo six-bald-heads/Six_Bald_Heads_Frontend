@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import styled from "styled-components";
-import CodeMirror, { EditorView, keymap } from "@uiw/react-codemirror";
-import { indentWithTab } from "@codemirror/commands";
-import { javascript } from "@codemirror/lang-javascript";
+import CodeMirror, {EditorView, keymap} from "@uiw/react-codemirror";
+import {indentWithTab} from "@codemirror/commands";
+import {javascript} from "@codemirror/lang-javascript";
+import ProfileModal from "./ProfileModal";
 
 type Props = {
   content: string;
@@ -12,78 +13,86 @@ const CodeEditor: React.FC<Props> = ({ content }) => {
   const [value, setValue] = useState(content);
   const [fontSize, setFontSize] = useState(14);
 
-  const onChange = (val: string) => {
-    setValue(val);
-  };
-
-  const handleFontSizeChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setFontSize(Number(event.target.value));
-  };
-
-  const handleSave = async () => {
-    const requestData = {
-      path: "/src/bald",
-      fileName: "bald.js",
-      content: value,
+    const onChange = (val: string) => {
+        setValue(val);
     };
 
-    try {
-      const response = await fetch(
-        "http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/editor",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
+    const handleFontSizeChange = (
+        event: React.ChangeEvent<HTMLSelectElement>
+    ) => {
+        setFontSize(Number(event.target.value));
+    };
+
+    const handleSave = async () => {
+        const requestData = {
+            path: "/src/bald",
+            fileName: "bald.js",
+            content: value,
+        };
+
+        try {
+            const response = await fetch(
+                "http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/editor",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestData),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok " + response.statusText);
+            }
+
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.error(
+                "There has been a problem with your fetch operation:",
+                error
+            );
         }
-      );
+    };
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok " + response.statusText);
-      }
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error(
-        "There has been a problem with your fetch operation:",
-        error
-      );
-    }
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
   };
 
-  return (
-    <EditorContainer>
-      <TopBar>
-        <FontSizeSelector onChange={handleFontSizeChange}>
-          <option value="12">12px</option>
-          <option value="14">14px</option>
-          <option value="16">16px</option>
-          <option value="18">18px</option>
-          <option value="20">20px</option>
-        </FontSizeSelector>
-        <SaveButton onClick={handleSave}>저장</SaveButton>
-      </TopBar>
-      <EditorWrapper fontSize={fontSize}>
-        <CodeMirror
-          className="cm-outer-container"
-          value={value}
-          height="100%"
-          width="100%"
-          extensions={[
-            javascript({ jsx: true }),
-            EditorView.lineWrapping,
-            keymap.of([indentWithTab]),
-          ]}
-          theme={"dark"}
-          onChange={onChange}
-        />
-      </EditorWrapper>
-    </EditorContainer>
-  );
+    return (
+        <EditorContainer>
+            <TopBar>
+                <FontSizeSelector onChange={handleFontSizeChange}>
+                    <option value="12">12px</option>
+                    <option value="14">14px</option>
+                    <option value="16">16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                </FontSizeSelector>
+                <SaveButton onClick={handleSave}>저장</SaveButton>
+                <ProfileButton onClick={handleOpenModal}>프로필</ProfileButton>
+                {isModalOpen && <ProfileModal setIsModalOpen={setIsModalOpen} />}
+            </TopBar>
+            <EditorWrapper fontSize={fontSize}>
+                <CodeMirror
+                    className="cm-outer-container"
+                    value={value}
+                    height="100%"
+                    width="100%"
+                    extensions={[
+                        javascript({jsx: true}),
+                        EditorView.lineWrapping,
+                        keymap.of([indentWithTab]),
+                    ]}
+                    theme={"dark"}
+                    onChange={onChange}
+                />
+            </EditorWrapper>
+        </EditorContainer>
+    );
 };
 
 const EditorContainer = styled.div`
@@ -104,8 +113,10 @@ const TopBar = styled.div`
 
 const FontSizeSelector = styled.select`
   padding: 5px;
-  // background-color: #6D9AE3;
-  // color: white;
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const SaveButton = styled.button`
@@ -116,9 +127,35 @@ const SaveButton = styled.button`
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.3s;
 
   &:hover {
     background-color: #ced0d9;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ProfileButton = styled.button`
+  padding: 5px 10px;
+  margin-left: 10px;
+  background-color: #6d9ae3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #ced0d9;
+  }
+
+  &:focus {
+    outline: none;
   }
 `;
 

@@ -7,7 +7,7 @@ import Info from "../components/Snackbar/Info.tsx";*/
 
 
 const SnackbarPage: React.FC = () => {
-    const [showSnackbar, setShowSnackbar] = useState(false);  // 스낵바의 표시 여부를 관리하는 상태
+    const [showSnackbar, setShowSnackbar] = useState(false);
 
     const handleShowSnackbar = () => {
         setShowSnackbar(true);
@@ -19,7 +19,7 @@ const SnackbarPage: React.FC = () => {
     return (
         <MainContainer>
             <ShowSnackbarButton onClick={handleShowSnackbar}>스낵바 보이기</ShowSnackbarButton>
-            <Success showSnackbar={showSnackbar} />
+            <Success $showSnackbar={showSnackbar} message="여기에 원하는 메시지를 입력하세요!" />
             {/*<Error showSnackbar={showSnackbar} />
             <Warning showSnackbar={showSnackbar} />
             <Info showSnackbar={showSnackbar} />*/}

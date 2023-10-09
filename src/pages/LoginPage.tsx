@@ -7,15 +7,18 @@ import { useAuth } from '../hooks/useAuth.ts';
 import backgroundImage from '../assets/bg-login.jpeg';
 import logo from '../assets/logo.png'
 import logofill from '../assets/logo-fill.png'
-import FindPasswordModal from '../components/FindPasswordModal.tsx'
-
-
+import FindPasswordModal from '../components/FindPasswordModal'
+import { useSnackbar } from '../hooks/useSnackbar';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isValidationPassed, setIsValidationPassed] = useState(false);
+
+    const { displaySnackbar } = useSnackbar();
+
     const navigate = useNavigate();
+
 
     interface ErrorResponse {
         message: string;
@@ -43,12 +46,12 @@ const LoginPage: React.FC = () => {
             const response = await axios.post(url, data);
             if (response.status === 200) {
                 console.log('로그인 성공! : ', response.data);
-
+                localStorage.setItem('nickname', response.data.data.nickname);
                 localStorage.setItem('accessToken', response.data.data.accessToken);
                 localStorage.setItem('refreshToken', response.data.data.refreshToken);
 
                 login();
-
+                displaySnackbar(response.data.data.nickname + " 님, 반갑습니다!", 'success');
                 navigate('/');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
@@ -59,6 +62,8 @@ const LoginPage: React.FC = () => {
                 if (axiosError.response && axiosError.response.status === 400) {
                     const errorResponse = axiosError.response.data as ErrorResponse;
                     console.error('이메일이나 비밀번호가 올바르지 않습니다. : ', errorResponse.message);
+
+                    displaySnackbar('이메일이나 비밀번호가 올바르지 않습니다.', 'error');
                 } else {
                     console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response ? axiosError.response.data : axiosError.message);
                 }
