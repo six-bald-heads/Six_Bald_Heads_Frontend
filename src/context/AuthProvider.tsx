@@ -13,7 +13,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     const login = () => {
-        // 로그인 로직 (예: API 호출) 후
         setIsLoggedIn(true);
     };
 

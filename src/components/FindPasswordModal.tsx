@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import styled, {css} from 'styled-components';
 import axios, { AxiosError } from 'axios';
+import { useSnackbar } from '../hooks/useSnackbar';
 
 
 const emailRegex = new RegExp(
@@ -12,6 +13,8 @@ const FindPasswordModal: React.FC<{ onClose: () => void }> = ({onClose}) => {
     const [isEmailValid, setIsEmailValid] = useState(true);  // 이메일 유효성 상태
 
     const [serverError, setServerError] = useState<string | null>(null);
+
+    const { displaySnackbar } = useSnackbar();
 
     interface ErrorResponse {
         message: string;
@@ -30,6 +33,8 @@ const FindPasswordModal: React.FC<{ onClose: () => void }> = ({onClose}) => {
                 if (response.status === 200) {
                     console.log('임시 비밀번호 전송 성공! : ', response.data);
                     setServerError(null);
+
+                    displaySnackbar('가입한 이메일로 임시 비밀번호를 전송했어요!', 'success');
                     onClose();
                 } else {
                     console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
@@ -137,7 +142,7 @@ const SendButton = styled.button<ButtonProps>`
   background-color: #6D9AE3;
   color: white;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 
   ${(props) => props.isDisabled && DisabledButtonStyle}
 
@@ -157,7 +162,7 @@ const CloseButton = styled.button`
   background-color: transparent;
   color: #6D9AE3;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 
   &:focus {
     outline: none;
@@ -169,10 +174,11 @@ const CloseButton = styled.button`
   }
 `;
 
-const ErrorText = styled.span`
+const ErrorText = styled.p`
     color: red;
     font-size: 12px;
     margin-top: -5px;
+  margin-bottom: 0;
 `;
 
 
