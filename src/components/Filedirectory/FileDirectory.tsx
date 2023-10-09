@@ -11,6 +11,7 @@ import {
 import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faJsSquare } from "@fortawesome/free-brands-svg-icons";
+import { fetchFileContent } from "../api";
 
 type FileDirectoryProps = {
   setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
@@ -241,10 +242,15 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
   };
   const treeData = treeDataItem(items);
 
-  const handleFileSelect = (key: string, content: string) => {
-    setSelectedFileKey(key);
-    setSelectedFileContent(content);
-    // TODO: 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
+  const handleFileSelect = async (_, fileName) => {
+    const filePath = "/src/bald"; // 실제 파일 경로를 이 변수에 할당
+    const fileContent = await fetchFileContent(filePath, fileName);
+
+    if (fileContent) {
+      setSelectedFileContent(fileContent);
+    }
+
+    // TODO: 서버 연결 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
   };
 
   return (
@@ -266,7 +272,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
         onDrop={handleDrop}
         onRightClick={(info) => handleRightClick(info.event, info.node.key)}
         treeData={treeData}
-        onSelect={(keys, info) =>
+        onSelect={(_, info) =>
           handleFileSelect(info.node.key, String(info.node.title))
         }
       />
