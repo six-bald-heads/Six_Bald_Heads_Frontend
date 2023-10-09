@@ -10,7 +10,8 @@ export const fetchFileContent = async (path, fileName) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer [YOUR_ACCESS_TOKEN]", // 토큰이 필요하다면 이렇게 추가
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6NCwiZW1haWwiOiJqY2hvaTQ1NzBAbmF2ZXIuY29tIiwibmlja25hbWUiOiLsoJzroZzsmIEwMCIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjk2ODI1MzAyLCJleHAiOjE2OTY4Njg1MDJ9.YN4vlqpzvdmnkJnXq8RYKdzl--iZGciVc5PEHpfpBoI", // 토큰이 필요하다면 이렇게 추가
       },
     });
 
