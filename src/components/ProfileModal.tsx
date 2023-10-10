@@ -5,7 +5,7 @@ import styled, {css} from 'styled-components';
 import {CloseOutlined, EditOutlined} from "@ant-design/icons";
 import axios, {AxiosError} from "axios";
 import DeleteAccountModal from "./DeleteAccountModal.tsx";
-import { useSnackbar } from '../hooks/useSnackbar';
+import {useSnackbar} from '../hooks/useSnackbar';
 
 
 const nicknameRegex = new RegExp('^[A-Za-z0-9가-힇]{4,10}$');
@@ -31,7 +31,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
     const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
 
     const {logout} = useAuth();
-    const { displaySnackbar } = useSnackbar();
+    const {displaySnackbar} = useSnackbar();
     const navigate = useNavigate();
 
     interface ErrorResponse {
@@ -63,7 +63,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
 
         fetchProfileImage();
     }, []);
-
 
 
     const handleClose = () => {
@@ -195,6 +194,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
             } else if (response.status === 400) {
                 console.log("중복된 닉네임입니다.");
                 setNicknameValid(false);
+
+
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
@@ -204,6 +205,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                 if (axiosError.response) {
                     if (axiosError.response.status === 400) {
                         console.log("중복된 닉네임입니다.");
+
+                        displaySnackbar('이미 사용 중인 닉네임입니다.', 'error');
                     } else {
                         console.error('네트워크 혹은 서버 에러입니다. : ', axiosError.response.data);
                     }
@@ -286,13 +289,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
             });
             if (response.status === 200) {
                 console.log('비밀번호 변경 성공!');
+
+                displaySnackbar('비밀번호를 변경했어요!', 'success');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const axiosError = error as AxiosError;
-                if (axiosError.response && axiosError.response.status === 401) {
+                if (axiosError.response && axiosError.response.status === 409) {
                     const errorResponse = axiosError.response.data as ErrorResponse;
                     console.error('기존 비밀번호와 일치합니다. : ', errorResponse.message);
 
@@ -353,7 +358,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({setIsModalOpen}) => {
                     <ImgContainer>
                         <ProfileImg src={previewImage || '/src/assets/logo-square.png'} alt="Profile Preview"/>
                         <UploadButton onMouseDown={(e) => handleUploadButtonClick(e)}>
-                        <EditOutlined/>
+                            <EditOutlined/>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -484,7 +489,7 @@ const ProfileImg = styled.img`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color:  #303336;
+  background-color: #303336;
 `;
 
 const UploadButton = styled.button`

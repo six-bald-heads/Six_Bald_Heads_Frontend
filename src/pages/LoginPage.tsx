@@ -95,10 +95,10 @@ const LoginPage: React.FC = () => {
                 </Logo>
                 <Title>SBH IDE</Title>
                 <Input
-                    type="email"
-                    placeholder="이메일"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                        type="email"
+                        placeholder="이메일"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                 />
                 <Input
                     type="password"
