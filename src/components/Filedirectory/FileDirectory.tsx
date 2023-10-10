@@ -11,7 +11,12 @@ import {
 import { findAndRemove, addNodeToTree, findParent } from "./treeHelpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faJsSquare } from "@fortawesome/free-brands-svg-icons";
-import { fetchFileContent } from "../api";
+import {
+  fetchFileContent,
+  createFileOnServer,
+  createFolderOnServer,
+  fetchFileTree,
+} from "../api";
 
 type FileDirectoryProps = {
   setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
@@ -98,16 +103,43 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
   };
 
   //folder와 file 생성 로직, 생성한 아이템 위 함수로 추가
-  const createNewItem = (
+  const createNewItem = async (
     itemType: "folder" | "file",
     parentKey: string | null
   ) => {
     setContextMenuPos(null);
 
+    try {
+      let apiResponse;
+
+      if (itemType === "folder") {
+        const path = parentKey || "/src";
+        const folderName = "새 폴더";
+        apiResponse = await createFolderOnServer(path, folderName);
+      } else {
+        const path = parentKey || "/src";
+        const fileName = "새 파일";
+        apiResponse = await createFileOnServer(path, fileName);
+      }
+
+      console.log("Server Response:", apiResponse);
+
+      if (apiResponse.status === "Success") {
+        alert("성공적으로 생성되었습니다");
+        console.log("response", apiResponse.data);
+      } else {
+        alert("실패했습니다");
+      }
+    } catch (error) {
+      console.error(`Failed to create ${itemType} on server:`, error);
+
+      return;
+    }
+
     const newItem: Item = {
       key: `${itemType}-${Date.now()}`,
       type: itemType,
-      title: itemType === "folder" ? "새 폴더" : "새 파일.js",
+      title: itemType === "folder" ? "폴더" : "파일",
       children: itemType === "folder" ? [] : undefined,
       icon:
         itemType === "folder" ? (
@@ -242,16 +274,56 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
   };
   const treeData = treeDataItem(items);
 
-  const handleFileSelect = async (_, fileName) => {
-    const filePath = "/src/bald"; // 실제 파일 경로를 이 변수에 할당
-    const fileContent = await fetchFileContent(filePath, fileName);
-
-    if (fileContent) {
-      setSelectedFileContent(fileContent);
+  const handleFileSelect = async (path, fileName) => {
+    try {
+      const fileContent = await fetchFileContent(path, fileName); // 파일 경로 대신 파일 이름을 넘기는 것을 확인하십시오.
+      if (fileContent) {
+        setSelectedFileContent(fileContent);
+      }
+    } catch (error) {
+      console.error("파일 내용을 불러오는 데 실패했습니다:", error);
     }
-
     // TODO: 서버 연결 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
   };
+
+  //초기 화면 불러오기
+  useEffect(() => {
+    const loadFileTree = async () => {
+      try {
+        const data = await fetchFileTree();
+        console.log("서버에서 받은 데이터", data); // 데이터 확인용 로그
+        if (data.status === "Success") {
+          //파일 트리 데이터 성공적으로 받아온 경우
+          //src 폴더 없으면 추가
+          const hasSrcFolder = data.data.children.some(
+            (item) => item.name === "src"
+          );
+
+          if (!hasSrcFolder) {
+            //src 없으면, 새로운 src 추가
+            const newItem: Item = {
+              key: "folder-src",
+              type: "folder",
+              title: "src",
+              children: [],
+              icon: <FolderOutlined style={{ marginRight: "25px" }} />,
+            };
+
+            setItems((prevItems) => [newItem, ...prevItems]);
+          }
+
+          setItems(data.data.children);
+          console.log(treeData);
+        } else {
+          console.error(data.message);
+        }
+      } catch (error) {
+        console.error("파일 트리 로딩 중 오류 발생:", error);
+      }
+    };
+
+    loadFileTree(); // 초기 렌더링 시 파일 트리 로딩
+  }, []);
 
   return (
     <DirectoryContainer>
