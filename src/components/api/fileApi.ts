@@ -11,7 +11,7 @@ export const fetchFileContent = async (path, fileName) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJza2luaGVhZEBiYWxkLmNvbSIsIm5pY2tuYW1lIjoi7LWc6rCV64yA66i466asIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE2OTY4Njk3OTgsImV4cCI6MTY5NjkxMjk5OH0.qPKG2jqOn97e4qW6gfpbTdZJVLxnELTtmbQJo1fjoag`,
+        Authorization: `Bearer ${accessToken}}`,
       },
     });
 
@@ -54,7 +54,7 @@ export const createFileOnServer = async (path: string, fileName: string) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJza2luaGVhZEBiYWxkLmNvbSIsIm5pY2tuYW1lIjoi7LWc6rCV64yA66i466asIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE2OTY4Njk3OTgsImV4cCI6MTY5NjkxMjk5OH0.qPKG2jqOn97e4qW6gfpbTdZJVLxnELTtmbQJo1fjoag`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -98,7 +98,7 @@ export const createFolderOnServer = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJza2luaGVhZEBiYWxkLmNvbSIsIm5pY2tuYW1lIjoi7LWc6rCV64yA66i466asIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE2OTY4Njk3OTgsImV4cCI6MTY5NjkxMjk5OH0.qPKG2jqOn97e4qW6gfpbTdZJVLxnELTtmbQJo1fjoag`,
+        Authorization: `${token}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -133,7 +133,7 @@ export const fetchFileTree = async (path: string = "/src") => {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJza2luaGVhZEBiYWxkLmNvbSIsIm5pY2tuYW1lIjoi7LWc6rCV64yA66i466asIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE2OTY4Njk3OTgsImV4cCI6MTY5NjkxMjk5OH0.qPKG2jqOn97e4qW6gfpbTdZJVLxnELTtmbQJo1fjoag`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
