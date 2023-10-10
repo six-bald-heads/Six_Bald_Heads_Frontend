@@ -19,8 +19,11 @@ import {
   renameFileOnServer,
   moveFileOnServer,
   moveFolderOnServer,
+  deleteFileOnServer,
+  deleteFolderOnServer,
 } from "../api";
 import { v4 as uuidv4 } from "uuid";
+import { useSnackbar } from "../../hooks/useSnackbar";
 
 type FileDirectoryProps = {
   setSelectedFileContent: React.Dispatch<React.SetStateAction<string>>;
@@ -55,6 +58,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const [selectedFileKey, setSelectedFileKey] = useState<string | null>(null);
+  const { displaySnackbar } = useSnackbar();
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -125,17 +129,17 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
         console.log("Creating folder with name:", folderName);
       } else {
         const path = parentKey || "/src";
-        const fileName = `NewFile.js-${uuidv4()}`;
+        const fileName = `NewFile-${uuidv4()}.js`;
         apiResponse = await createFileOnServer(path, fileName);
       }
 
       console.log("Server Response:", apiResponse);
 
       if (apiResponse.status === "Success") {
-        alert("성공적으로 생성되었습니다");
+        displaySnackbar("성공적으로 생성되었습니다", "success");
         console.log("response", apiResponse.data);
       } else {
-        alert("실패했습니다");
+        displaySnackbar("실패했습니다", "error");
       }
     } catch (error) {
       console.error(`Failed to create ${itemType} on server:`, error);
@@ -145,7 +149,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
     const newItem: Item = {
       key: `${itemType}-${Date.now()}`,
       type: itemType,
-      title: itemType === "folder" ? "NewFolder" : "NewFile.js",
+      title: itemType === "folder" ? "새 폴더" : "새 파일.js",
       children: itemType === "folder" ? [] : undefined,
 
       icon:
@@ -199,13 +203,13 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
                   success = result.success;
                   message = result.message;
                 } else {
-                  alert("알 수 없는 아이템 타입!");
+                  displaySnackbar("알 수 없는 아이템 타입!", "error");
                   return;
                 }
                 if (success) {
-                  alert("서버에 이름 변경 성공!");
+                  displaySnackbar("서버에 이름 변경 성공!", "success");
                 } else {
-                  alert("서버에 이름 변경 실패: " + message);
+                  displaySnackbar("서버에 이름 변경 실패: " + message, "error");
                   return; // 에러 발생 시 아래의 상태 변경 로직을 실행하지 않게 함
                 }
 
@@ -270,9 +274,43 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
     }, []);
   };
 
-  const onDelete = (key: string) => {
-    setContextMenuPos(null);
-    setItems((prevItems) => deleteItemFromParent(prevItems, key));
+  const onDelete = async (key: string) => {
+    const targetItem = items.find((item) => item.key === key);
+
+    if (!targetItem) {
+      console.error("해당 key를 가진 아이템이 없습니다.");
+      return;
+    }
+
+    console.log(targetItem.path);
+    try {
+      let apiResponse;
+      if (targetItem.type === "folder") {
+        apiResponse = await deleteFolderOnServer(targetItem.path); // 폴더 삭제 API 호출
+      } else if (targetItem.type === "file") {
+        apiResponse = await deleteFileOnServer(
+          targetItem.path,
+          targetItem.title
+        );
+        console.log("딜리트 파일 path", targetItem.path);
+        // 파일 삭제 API 호출
+      } else {
+        console.error("Unexpected item type:", targetItem.type);
+        console.error("알 수 없는 아이템 타입입니다.");
+        return;
+      }
+
+      if (apiResponse.status === "Success") {
+        displaySnackbar("성공적으로 삭제되었습니다.", "success");
+        setContextMenuPos(null);
+        setItems((prevItems) => deleteItemFromParent(prevItems, key));
+      } else {
+        displaySnackbar("삭제에 실패했습니다: " + apiResponse.message, "error");
+      }
+    } catch (error) {
+      console.error(`아이템 삭제에 실패했습니다.`, error);
+      displaySnackbar(`오류: ${error.message}`, "error");
+    }
   };
 
   const handleDrop = async (info) => {
@@ -328,7 +366,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
         }
       } catch (error) {
         console.error(`파일을 이동하는데 실패했습니다:`, error);
-        alert("파일 이동 실패");
+        displaySnackbar("파일 이동 실패", "error");
         return;
       }
     } else if (dragNode.props.data.type === "folder") {
@@ -343,7 +381,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
         }
       } catch (error) {
         console.error(`폴더를 이동하는데 실패했습니다:`, error);
-        alert("폴더 이동 실패");
+        displaySnackbar("폴더 이동 실패", "error");
         return;
       }
     }
@@ -355,9 +393,12 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
   const treeData = treeDataItem(items);
 
   const handleFileSelect = async (path: string, fileName: string) => {
+    console.log("함수 실행");
     try {
+      console.log("트라이문");
       const fileContent = await fetchFileContent(path, fileName); // 파일 경로 대신 파일 이름을 넘기는 것을 확인하십시오.
       if (fileContent) {
+        console.log("파일 콘텐츠", fileContent);
         setSelectedFileContent(fileContent);
       }
     } catch (error) {
@@ -365,45 +406,6 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
     }
     // TODO: 서버 연결 해당 파일의 내용을 불러와서 setSelectedFileContent로 상태 업데이트하기
   };
-
-  //초기 화면 불러오기
-  // useEffect(() => {
-  //   const loadFileTree = async () => {
-  //     try {
-  //       const data = await fetchFileTree();
-  //       console.log("서버에서 받은 데이터", data); // 데이터 확인용 로그
-  //       if (data.status === "Success") {
-  //         //파일 트리 데이터 성공적으로 받아온 경우
-  //         //src 폴더 없으면 추가
-  //         const hasSrcFolder = data.data.children.some(
-  //           (item) => item.name === "src"
-  //         );
-
-  //         // if (!hasSrcFolder) {
-  //         //   //src 없으면, 새로운 src 추가
-  //         //   const newItem: Item = {
-  //         //     key: "folder-src",
-  //         //     type: "folder",
-  //         //     title: "src",
-  //         //     children: [],
-  //         //     icon: <FolderOutlined style={{ marginRight: "25px" }} />,
-  //         //   };
-
-  //         //   setItems((prevItems) => [newItem, ...prevItems]);
-  //         // }
-
-  //         setItems(data.data.children);
-  //         console.log(treeData);
-  //       } else {
-  //         console.error(data.message);
-  //       }
-  //     } catch (error) {
-  //       console.error("파일 트리 로딩 중 오류 발생:", error);
-  //     }
-  //   };
-
-  //   loadFileTree(); // 초기 렌더링 시 파일 트리 로딩
-  // }, []);
 
   return (
     <DirectoryContainer>

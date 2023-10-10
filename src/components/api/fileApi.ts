@@ -1,19 +1,20 @@
-export const fetchFileContent = async (path: string, fileName: string) => {
+//파일과 에디터 연결
+export const fetchFileContent = async () => {
   try {
-    const url = new URL(
-      "http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file"
-    );
-    url.searchParams.append("path", path);
-    url.searchParams.append("fileName", fileName);
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      throw new Error("토큰이 없습니다. 로그인해주세요.");
+    }
 
-    console.log(path, fileName);
-    const accessToken = localStorage.getItem("accessToken");
-    console.log(accessToken);
-    const response = await fetch(url.toString(), {
+    // const fileName = "새 파일.js";
+    // const encodedFileName = encodeURIComponent(fileName);
+    // const url = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file?path=/&fileName=${encodedFileName}`;
+    const url = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file?path=%2Fsrc&fileName=harok.js`;
+    // const url = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file?path=%2Fsrc&fileName=%EC%83%88%20%ED%8F%B4%EB%8D%94.js`;
+    const response = await fetch(url, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -21,15 +22,18 @@ export const fetchFileContent = async (path: string, fileName: string) => {
       const data = await response.json();
       throw new Error(data.message);
     }
+
+    return await response.json();
   } catch (error) {
     console.error("API 호출 중 오류 발생:", error);
+    throw error;
   }
 };
 
+//파일 생성
 export const createFileOnServer = async (path: string, fileName: string) => {
   const endpoint =
     "http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file";
-
   const requestBody = {
     path: path,
     fileName: fileName,
@@ -65,6 +69,7 @@ export const createFileOnServer = async (path: string, fileName: string) => {
   }
 };
 
+//폴더 생성
 export const createFolderOnServer = async (
   path: string,
   folderName: string
@@ -90,7 +95,7 @@ export const createFolderOnServer = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -111,32 +116,7 @@ export const createFolderOnServer = async (
   }
 };
 
-// // 초기 렌더링
-// export const fetchFileTree = async (path: string = "/src") => {
-//   const endpoint = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree`;
-
-//   const token = localStorage.getItem("accessToken");
-
-//   if (!token) {
-//     throw new Error("토큰이 없습니다. 로그인해주세요.");
-//   }
-
-//   const response = await fetch(endpoint, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-
-//   if (!response.ok) {
-//     const data = await response.json();
-//     throw new Error(data.message || "Unknown error");
-//   }
-
-//   return await response.json();
-// };
-
+//폴더 이름 수정
 export const renameFolderOnServer = async (
   path: string,
   folderName: string,
@@ -166,10 +146,11 @@ export const renameFolderOnServer = async (
       throw new Error(data.message);
     }
   } catch (error) {
-    return { success: false, message: (error as any).message };
+    return { success: false, message: error.message };
   }
 };
 
+//파일 이름 수정
 export const renameFileOnServer = async (
   path: string,
   fileName: string,
@@ -185,8 +166,8 @@ export const renameFileOnServer = async (
         },
         body: JSON.stringify({
           path,
-          fileName, // 'folderName'을 'fileName'으로 바꿔줌
-          fileReName, // 'folderReName'을 'fileReName'으로 바꿔줌
+          fileName,
+          fileReName,
         }),
       }
     );
@@ -203,7 +184,7 @@ export const renameFileOnServer = async (
   }
 };
 
-// fileApi.ts 혹은 적절한 api 파일
+// 파일 이동
 export const moveFileOnServer = async (
   currentPath: string,
   movePath: string,
@@ -244,7 +225,7 @@ export const moveFileOnServer = async (
   }
 };
 
-// fileApi.ts 혹은 적절한 api 파일
+// 폴더 이동
 export const moveFolderOnServer = async (
   currentPath: string,
   movePath: string,
@@ -281,6 +262,75 @@ export const moveFolderOnServer = async (
     return data;
   } catch (error) {
     console.error(`Error moving folder:`, error);
+    throw error;
+  }
+};
+
+// 파일 삭제
+export const deleteFileOnServer = async (path: string, fileName: string) => {
+  const fullPath = `${path}/${fileName}`;
+  const endpoint = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/file?path=${encodeURIComponent(
+    fullPath
+  )}`;
+
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    throw new Error("토큰이 없습니다. 로그인해주세요.");
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+
+    console.log(endpoint);
+    return data;
+  } catch (error) {
+    console.error(`Error deleting file:`, error);
+    throw error;
+  }
+};
+
+// 폴더 삭제
+export const deleteFolderOnServer = async (path: string) => {
+  const endpoint = `http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/file-tree/folder?path=${encodeURIComponent(
+    path
+  )}`; // 여기에 실제 서버 URL을 적어
+  const token = localStorage.getItem("accessToken"); // 토큰이 필요하다면 추가
+
+  if (!token) {
+    throw new Error("토큰이 없습니다. 로그인해주세요.");
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`Error deleting folder:`, error);
     throw error;
   }
 };
