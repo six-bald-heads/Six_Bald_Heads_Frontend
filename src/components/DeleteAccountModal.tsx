@@ -4,6 +4,7 @@ import axios, { AxiosError } from 'axios';
 import {CloseOutlined} from "@ant-design/icons";
 import {useNavigate} from 'react-router-dom';
 
+import {useAuth} from "../hooks/useAuth.ts"
 import { useSnackbar } from '../hooks/useSnackbar';
 
 
@@ -14,6 +15,7 @@ interface DeleteAccountModalProps {
 
 const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({setIsDeleteAccountModalOpen}) => {
     const { displaySnackbar } = useSnackbar();
+    const {logout} = useAuth();
     const navigate = useNavigate();
 
     const handleClose = () => {
@@ -37,6 +39,7 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({setIsDeleteAccou
 
                 displaySnackbar("계정이 삭제되었습니다. 또 만나요! ", 'info');
 
+                logout();
                 navigate('/login');
             } else {
                 console.error('예상치 못한 문제가 발생했어요! : ', response.status, response.data);
