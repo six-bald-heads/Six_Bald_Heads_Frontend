@@ -398,7 +398,7 @@ const FileDirectory: React.FC<FileDirectoryProps> = ({
       console.log("트라이문");
       const fileContent = await fetchFileContent(path, fileName); // 파일 경로 대신 파일 이름을 넘기는 것을 확인하십시오.
       if (fileContent) {
-        console.log("파일 콘텐츠", fileContent);
+        console.log(fileContent.data);
         setSelectedFileContent(fileContent);
       }
     } catch (error) {

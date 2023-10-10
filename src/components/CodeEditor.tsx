@@ -1,17 +1,31 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import styled from "styled-components";
 import CodeMirror, {EditorView, keymap} from "@uiw/react-codemirror";
 import {indentWithTab} from "@codemirror/commands";
 import {javascript} from "@codemirror/lang-javascript";
 import ProfileModal from "./ProfileModal";
+import axios from 'axios';
+
+import { useSnackbar } from '../hooks/useSnackbar';
+
 
 type Props = {
-  content: string;
+    content: {
+        data: string;
+    };
 };
 
 const CodeEditor: React.FC<Props> = ({ content }) => {
-  const [value, setValue] = useState(content);
-  const [fontSize, setFontSize] = useState(14);
+    const [value, setValue] = useState(content.data);
+    const [fontSize, setFontSize] = useState(14);
+
+    const { displaySnackbar } = useSnackbar();
+
+
+    useEffect(() => {
+        setValue(content.data);
+    }, [content]);
+
 
     const onChange = (val: string) => {
         setValue(val);
@@ -24,39 +38,39 @@ const CodeEditor: React.FC<Props> = ({ content }) => {
     };
 
     const handleSave = async () => {
-        const requestData = {
-            path: "/src/bald",
-            fileName: "bald.js",
-            content: value,
-        };
+        const accessToken = localStorage.getItem('accessToken');
 
         try {
-            const response = await fetch(
+            const response = await axios.post(
                 "http://ec2-3-34-131-210.ap-northeast-2.compute.amazonaws.com:8080/api/v1/editor",
                 {
-                    method: "POST",
+                    path: "/src",
+                    fileName: "harok.js",
+                    content: value
+                },
+                {
                     headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(requestData),
+                        'Authorization': `Bearer ${accessToken}`
+                    }
                 }
             );
 
-            if (!response.ok) {
-                throw new Error("Network response was not ok " + response.statusText);
+            if (response.status === 200) {
+                console.log("File saved successfully:", response.data);
+                console.log(value);
+                displaySnackbar("변경사항을 저장했어요!", 'success');
+            } else {
+                console.error("Failed to save file:", response.data);
+                displaySnackbar("저장에 실패했습니다. 다시 시도해주세요.", 'error');
             }
-
-            const data = await response.json();
-            console.log(data);
         } catch (error) {
-            console.error(
-                "There has been a problem with your fetch operation:",
-                error
-            );
+            console.error("Error saving file:", error);
+            displaySnackbar("저장 중 오류가 발생했습니다. 다시 시도해주세요.", 'error');
         }
     };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
